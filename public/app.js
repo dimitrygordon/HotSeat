@@ -1,27 +1,30 @@
+// 🔥 Firebase imports (ES module via CDN)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getFirestore, collection, addDoc, onSnapshot,
   serverTimestamp, query, orderBy, doc, updateDoc, deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// 🔥 Firebase config (replace this)
+// 🔥 Firebase config — replace YOUR_KEY etc. with your actual Firebase project values
 const firebaseConfig = {
-  apiKey: "YOUR_KEY",
-  authDomain: "YOUR_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_BUCKET",
-  messagingSenderId: "ID",
-  appId: "APP_ID"
+  apiKey: "AIzaSyClkHjUnQ96VNRj1FxyY-ca-AcDWYoX_m8",
+  authDomain: "hotseat-4f661.firebaseapp.com",
+  projectId: "hotseat-4f661",
+  storageBucket: "hotseat-4f661.firebasestorage.app",
+  messagingSenderId: "1052089495081",
+  appId: "1:1052089495081:web:15293be177ad3a6f577638"
 };
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// 🌟 App state
 let username = "";
 let isTeacher = false;
 let sortMode = "new";
 
-// DOM
+// DOM elements
 const loginDiv = document.getElementById("login");
 const appDiv = document.getElementById("app");
 const joinBtn = document.getElementById("joinBtn");
@@ -34,7 +37,7 @@ const sortSelect = document.getElementById("sortSelect");
 const teacherBtn = document.getElementById("teacherBtn");
 const pollSection = document.getElementById("pollSection");
 
-// Join
+// ✅ Join the session
 joinBtn.onclick = () => {
   username = usernameInput.value.trim();
   if (!username) return;
@@ -50,7 +53,7 @@ joinBtn.onclick = () => {
   loadPoll();
 };
 
-// Post
+// ✅ Post a new message
 postBtn.onclick = async () => {
   const text = postInput.value.trim();
   if (!text) return;
@@ -65,13 +68,13 @@ postBtn.onclick = async () => {
   postInput.value = "";
 };
 
-// Sort
+// ✅ Sort mode change
 sortSelect.onchange = () => {
   sortMode = sortSelect.value;
   loadPosts();
 };
 
-// Load posts
+// ✅ Load posts from Firestore
 function loadPosts() {
   postsDiv.innerHTML = "";
 
@@ -111,10 +114,12 @@ function loadPosts() {
   });
 }
 
-// Teacher poll
+// ✅ Teacher: create a poll
 teacherBtn.onclick = async () => {
   const question = prompt("Poll question:");
-  const options = prompt("Comma-separated options:").split(",");
+  const options = prompt("Comma-separated options:").split(",").map(o => o.trim());
+
+  if (!question || options.length === 0) return;
 
   await addDoc(collection(db, "polls"), {
     question,
@@ -124,7 +129,7 @@ teacherBtn.onclick = async () => {
   });
 };
 
-// Load poll
+// ✅ Load active poll
 function loadPoll() {
   onSnapshot(collection(db, "polls"), snapshot => {
     pollSection.innerHTML = "";
@@ -143,9 +148,7 @@ function loadPoll() {
         btn.textContent = `${opt} (${poll.votes[i]})`;
         btn.onclick = async () => {
           poll.votes[i]++;
-          await updateDoc(doc(db, "polls", docSnap.id), {
-            votes: poll.votes
-          });
+          await updateDoc(doc(db, "polls", docSnap.id), { votes: poll.votes });
         };
         div.appendChild(btn);
       });
