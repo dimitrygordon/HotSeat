@@ -1,9 +1,7 @@
 /* PopBoard CSS - February 2026 version */
 /* Cream/tan primary buttons, dark mode support, popcorn theme */
 
-/* ──────────────────────────────────────────────── */
-/* Root variables - light mode default             */
-/* ──────────────────────────────────────────────── */
+/* Root variables - light mode default */
 :root {
   --bg-color: #f8f6f1;
   --text-color: #3a2e1f;
@@ -38,12 +36,7 @@
   --shadow: 0 2px 12px rgba(0,0,0,0.4);
 }
 
-/* ──────────────────────────────────────────────── */
-/* Global base styles                              */
-/* ──────────────────────────────────────────────── */
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
   font-family: system-ui, -apple-system, sans-serif;
@@ -55,18 +48,10 @@ body {
   transition: background-color 0.4s, color 0.4s;
 }
 
-.hidden {
-  display: none !important;
-}
+.hidden { display: none !important; }
 
-#login, #popboards, #app {
-  max-width: 720px;
-  margin: 0 auto;
-}
+#login, #popboards, #app { max-width: 720px; margin: 0 auto; }
 
-/* ──────────────────────────────────────────────── */
-/* Header & Logo                                   */
-/* ──────────────────────────────────────────────── */
 header {
   display: flex;
   align-items: center;
@@ -76,25 +61,12 @@ header {
   gap: 16px;
 }
 
-#logo-img {
-  height: 48px;
-  width: auto;
-  display: block;
-}
+#logo-img { height: 48px; width: auto; display: block; }
 
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
+.header-right { display: flex; align-items: center; gap: 12px; }
 
-[data-theme="dark"] #logo-img {
-  filter: brightness(1.15);
-}
+[data-theme="dark"] #logo-img { filter: brightness(1.15); }
 
-/* ──────────────────────────────────────────────── */
-/* Form elements                                   */
-/* ──────────────────────────────────────────────── */
 input, textarea, select {
   width: 100%;
   padding: 12px;
@@ -106,10 +78,7 @@ input, textarea, select {
   font-size: 1rem;
 }
 
-textarea {
-  min-height: 90px;
-  resize: vertical;
-}
+textarea { min-height: 90px; resize: vertical; }
 
 button {
   padding: 10px 18px;
@@ -122,25 +91,11 @@ button {
   transition: background 0.2s, transform 0.1s;
 }
 
-button:hover {
-  background: var(--button-hover-bg);
-}
+button:hover { background: var(--button-hover-bg); }
+button:active { transform: scale(0.98); }
 
-button:active {
-  transform: scale(0.98);
-}
+label { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
 
-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  user-select: none;
-}
-
-/* ──────────────────────────────────────────────── */
-/* Posts & Upvotes                                 */
-/* ──────────────────────────────────────────────── */
 .post {
   background: var(--card-bg);
   padding: 14px 16px;
@@ -151,15 +106,9 @@ label {
   transition: background 0.4s, border-color 0.3s;
 }
 
-.post.upvoted-by-me {
-  background: var(--upvoted-bg);
-  border-color: var(--maroon);
-}
+.post.upvoted-by-me { background: var(--upvoted-bg); border-color: var(--maroon); }
 
-strong {
-  font-weight: 600;
-  color: var(--text-color);
-}
+strong { font-weight: 600; color: var(--text-color); }
 
 .upvote {
   cursor: pointer;
@@ -174,17 +123,12 @@ strong {
   transition: background 0.2s;
 }
 
-.upvote:hover {
-  background: rgba(212, 163, 115, 0.12);
-}
+.upvote:hover { background: rgba(212, 163, 115, 0.12); }
 
 .popcorn-small  { font-size: 1.3rem; }
 .popcorn-medium { font-size: 1.9rem; }
 .popcorn-mega   { font-size: 2.8rem; }
 
-/* ──────────────────────────────────────────────── */
-/* Replies                                         */
-/* ──────────────────────────────────────────────── */
 .reply {
   margin: 12px 0 8px 28px;
   padding-left: 14px;
@@ -193,9 +137,6 @@ strong {
   opacity: 0.92;
 }
 
-/* ──────────────────────────────────────────────── */
-/* Polls                                           */
-/* ──────────────────────────────────────────────── */
 .poll {
   background: var(--poll-bg);
   padding: 16px;
@@ -233,7 +174,6 @@ strong {
   100% { opacity: 0; transform: translateY(-120%) scale(1.4); }
 }
 
-/* Poll results bar chart */
 .bar-chart {
   margin-top: 16px;
   display: flex;
@@ -261,9 +201,6 @@ strong {
   text-shadow: 0 0 4px rgba(0,0,0,0.7);
 }
 
-/* ──────────────────────────────────────────────── */
-/* Confetti (tiny popcorn kernels on upvote)       */
-/* ──────────────────────────────────────────────── */
 .confetti {
   position: fixed;
   pointer-events: none;
@@ -277,14 +214,6 @@ strong {
   100% { opacity: 0; transform: translateY(80vh) rotate(720deg); }
 }
 
-/* ──────────────────────────────────────────────── */
-/* Misc                                            */
-/* ──────────────────────────────────────────────── */
-h2 {
-  margin: 0 0 16px;
-  color: var(--text-color);
-}
+h2, h3 { margin: 0 0 16px; color: var(--text-color); }
 
-section {
-  margin-bottom: 24px;
-}
+section { margin-bottom: 24px; }
