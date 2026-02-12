@@ -3,73 +3,51 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PopBoard</title>
+  <title>Live Classroom Board</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-<div id="login" class="visible">
-  <h2>Join PopBoard</h2>
-  <input id="usernameInput" placeholder="Your display name" autocomplete="off" />
-  <div id="boardSelection" class="hidden">
-    <label for="boardSelect">Select PopBoard:</label>
-    <select id="boardSelect"></select>
-  </div>
+<div id="login">
+  <h2>Join Discussion</h2>
+  <input id="usernameInput" placeholder="Enter your name" />
   <button id="joinBtn">Join</button>
 </div>
 
-<div id="popboards" class="hidden">
-  <header>
-    <div id="logo">
-      <img src="/popboard-logo.png" alt="PopBoard Logo" id="logo-img" loading="lazy">
-    </div>
-    <div class="header-right">
-      <button id="themeToggle">🌙 Dark Mode</button>
-      <button id="backToBoards">Back to PopBoards</button>
-    </div>
-  </header>
-  <h2>PopBoards</h2>
-  <div id="boardsList"></div>
-  <div id="newBoardSection">
-    <input id="newBoardName" placeholder="New PopBoard name" />
-    <button id="createBoardBtn">Create New PopBoard</button>
-  </div>
-  <section id="userListSection" class="hidden">
-    <h3>Participants</h3>
-    <ul id="userList"></ul>
-  </section>
-</div>
-
 <div id="app" class="hidden">
+
   <header>
     <div id="logo">
       <img src="/popboard-logo.png" alt="PopBoard Logo" id="logo-img" loading="lazy">
     </div>
+
     <div class="header-right">
       <button id="teacherBtn" class="hidden">Teacher Panel</button>
       <button id="themeToggle">🌙 Dark Mode</button>
-      <button id="backToBoards">Back to PopBoards</button>
     </div>
   </header>
 
   <section id="pollSection"></section>
 
   <section id="newPost">
-    <textarea id="postInput" placeholder="Write a comment..."></textarea>
-    <div style="margin: 8px 0; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-      <label><input type="checkbox" id="anonPostToggle"> 🥷🏼 Post Anonymously</label>
-      <button id="postBtn">Post</button>
+    <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
+      <textarea id="postInput" placeholder="Write a comment or question..."></textarea>
+      <label style="white-space:nowrap; cursor:pointer;">
+        <input type="checkbox" id="anonymousToggle"> 🥷 Post Anonymously
+      </label>
     </div>
+    <button id="postBtn">Post</button>
   </section>
 
   <section>
     <select id="sortSelect">
       <option value="new">Newest</option>
-      <option value="top">Top (updates ~every 2 min)</option>
+      <option value="top">Top</option>
     </select>
   </section>
 
   <section id="posts"></section>
+
 </div>
 
 <script type="module" src="app.js"></script>
