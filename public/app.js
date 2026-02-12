@@ -5,7 +5,7 @@ import {
   serverTimestamp, query, orderBy, doc, updateDoc, deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// 🔥 Firebase config — replace YOUR_KEY etc. with your actual Firebase project values
+// 🔥 Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyClkHjUnQ96VNRj1FxyY-ca-AcDWYoX_m8",
   authDomain: "hotseat-4f661.firebaseapp.com",
@@ -25,17 +25,67 @@ let isTeacher = false;
 let sortMode = "new";
 
 // DOM elements
-const loginDiv = document.getElementById("login");
-const appDiv = document.getElementById("app");
-const joinBtn = document.getElementById("joinBtn");
+const loginDiv      = document.getElementById("login");
+const appDiv        = document.getElementById("app");
+const joinBtn       = document.getElementById("joinBtn");
 const usernameInput = document.getElementById("usernameInput");
-const welcome = document.getElementById("welcome");
-const postInput = document.getElementById("postInput");
-const postBtn = document.getElementById("postBtn");
-const postsDiv = document.getElementById("posts");
-const sortSelect = document.getElementById("sortSelect");
-const teacherBtn = document.getElementById("teacherBtn");
-const pollSection = document.getElementById("pollSection");
+const welcome       = document.getElementById("welcome");
+const postInput     = document.getElementById("postInput");
+const postBtn       = document.getElementById("postBtn");
+const postsDiv      = document.getElementById("posts");
+const sortSelect    = document.getElementById("sortSelect");
+const teacherBtn    = document.getElementById("teacherBtn");
+const pollSection   = document.getElementById("pollSection");
+
+// ────────────────────────────────────────────────
+// Theme handling – moved here after all elements are selected
+// ────────────────────────────────────────────────
+const themeToggle = document.getElementById("themeToggle");
+const htmlElement = document.documentElement;
+
+function setTheme(theme) {
+  htmlElement.setAttribute("data-theme", theme);
+  localStorage.setItem("theme", theme);
+  
+  // Update button text/icon
+  if (theme === "dark") {
+    themeToggle.textContent = "☀️ Light Mode";
+  } else {
+    themeToggle.textContent = "🌙 Dark Mode";
+  }
+}
+
+function loadTheme() {
+  const savedTheme = localStorage.getItem("theme");
+  
+  if (savedTheme) {
+    setTheme(savedTheme);
+  } else {
+    // Respect system preference if no saved choice
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    setTheme(prefersDark ? "dark" : "light");
+  }
+}
+
+// Auto-switch when system preference changes (only if user hasn't chosen manually)
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", e => {
+  if (!localStorage.getItem("theme")) {
+    setTheme(e.matches ? "dark" : "light");
+  }
+});
+
+// Toggle on click
+themeToggle.addEventListener("click", () => {
+  const currentTheme = htmlElement.getAttribute("data-theme") || "light";
+  setTheme(currentTheme === "dark" ? "light" : "dark");
+});
+
+// Initialize theme immediately
+loadTheme();
+
+// ────────────────────────────────────────────────
+// App logic
+// ────────────────────────────────────────────────
 
 // ✅ Join the session
 joinBtn.onclick = () => {
