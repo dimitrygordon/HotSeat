@@ -281,3 +281,17 @@ label[for="anonymousToggle"] {
   background: #e3c9a8;
   color: #222;
 }
+
+/* Anonymous toggle styling */
+.anonymous-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+#anonymousToggle {
+  accent-color: var(--accent);
+}
