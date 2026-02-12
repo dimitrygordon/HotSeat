@@ -28,7 +28,10 @@
   --border-color: #444;
 }
 
-/* Apply variables */
+/* ──────────────────────────────────────────────── */
+/* Base layout & variables */
+/* ──────────────────────────────────────────────── */
+
 body {
   font-family: system-ui, sans-serif;
   margin: 0;
@@ -37,13 +40,19 @@ body {
   color: var(--text-color);
 }
 
-.hidden {
-  display: none;
-}
+.hidden { display: none; }
 
 #login, #app {
   max-width: 700px;
   margin: auto;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  gap: 16px;
 }
 
 textarea,
@@ -72,12 +81,50 @@ button:hover {
   background: var(--button-hover-bg);
 }
 
+html {
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* ──────────────────────────────────────────────── */
+/* Logo */
+/* ──────────────────────────────────────────────── */
+
+#logo {
+  font-size: 0;               /* hide text fallback */
+  line-height: 0;
+}
+
+#logo-img {
+  height: 48px;               /* adjust as needed */
+  width: auto;
+  display: block;
+}
+
+[data-theme="dark"] #logo-img {
+  filter: brightness(1.1);
+}
+
+/* ──────────────────────────────────────────────── */
+/* Posts & upvotes */
+/* ──────────────────────────────────────────────── */
+
 .post {
   background: var(--card-bg);
   padding: 10px;
   margin-bottom: 10px;
   border-radius: 6px;
   border: 1px solid var(--border-color);
+}
+
+.post.upvoted-by-me {
+  background: #80000022;
+  border-color: #80000088;
+  transition: background 0.4s;
+}
+
+[data-theme="dark"] .post.upvoted-by-me {
+  background: #80000044;
+  border-color: #b2222288;
 }
 
 .reply {
@@ -90,6 +137,10 @@ button:hover {
   color: var(--accent);
 }
 
+/* ──────────────────────────────────────────────── */
+/* Polls */
+/* ──────────────────────────────────────────────── */
+
 .poll {
   background: var(--poll-bg);
   padding: 10px;
@@ -97,31 +148,6 @@ button:hover {
   border-radius: 6px;
 }
 
-/* Optional: better spacing for poll buttons */
-.poll button {
-  margin: 5px 8px 5px 0;
-}
-
-html {
-  transition: background-color 0.3s, color 0.3s;
-}
-
-/* Logo styling */
-#logo {
-  font-size: 1.8rem;
-  font-weight: bold;
-  color: var(--text-color);
-  margin: 0;
-}
-
-/* Upvoted post highlight (maroon tint) */
-.post.upvoted-by-me {
-  background: #80000022;          /* semi-transparent maroon */
-  border-color: #80000088;
-  transition: background 0.4s;
-}
-
-/* Poll button states */
 .poll button {
   margin: 5px 8px 5px 0;
   min-width: 140px;
@@ -130,11 +156,14 @@ html {
 }
 
 .poll button.voted-by-me {
-  background: #800000 !important;     /* maroon */
+  background: #800000 !important;
   color: white !important;
 }
 
-/* Popcorn emoji animation when voting */
+[data-theme="dark"] .poll button.voted-by-me {
+  background: #a00000 !important;
+}
+
 .poll button.voted-by-me::after {
   content: "🍿";
   position: absolute;
@@ -149,37 +178,4 @@ html {
   0%   { opacity: 0; transform: translateY(-50%) scale(0.5); }
   50%  { opacity: 1; transform: translateY(-50%) scale(1.4); }
   100% { opacity: 0; transform: translateY(-80%) scale(1.2); }
-}
-
-/* Dark mode adjustments for highlights */
-[data-theme="dark"] .post.upvoted-by-me {
-  background: #80000044;          /* slightly stronger in dark mode */
-  border-color: #b2222288;
-}
-
-[data-theme="dark"] .poll button.voted-by-me {
-  background: #a00000 !important;
-}
-
-#logo {
-  font-size: 0;               /* hide any fallback text */
-}
-
-#logo-img {
-  height: 48px;               /* adjust this to your preferred height */
-  width: auto;                /* keeps aspect ratio */
-  display: block;
-}
-
-/* Optional: center it or add some spacing */
-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 0;
-}
-
-/* Dark mode - optional slight filter or color tweak if needed */
-[data-theme="dark"] #logo-img {
-  filter: brightness(1.1);    /* makes it pop a bit more on dark bg */
 }
