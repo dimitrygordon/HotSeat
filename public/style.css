@@ -1,198 +1,55 @@
-/* Define light mode as default via :root */
 :root {
   --bg-color: #f4f4f4;
   --text-color: #333;
   --card-bg: white;
   --input-bg: white;
-  --input-text: #333;
-  --button-bg: #007bff;
-  --button-text: white;
-  --button-hover-bg: #0056b3;
-  --accent: blue;
+  --button-bg: #d4a017;           /* warm tan / cream */
+  --button-text: #333;
+  --button-hover-bg: #b38b12;
+  --accent: #d4a017;
   --poll-bg: #fffbe6;
   --border-color: #ddd;
+  --maroon: #800000;
 }
 
-/* Dark mode overrides */
 [data-theme="dark"] {
   --bg-color: #121212;
   --text-color: #e0e0e0;
   --card-bg: #1e1e1e;
   --input-bg: #2d2d2d;
-  --input-text: #e0e0e0;
-  --button-bg: #0d6efd;
-  --button-text: white;
-  --button-hover-bg: #0a58ca;
-  --accent: #4da6ff;
+  --button-bg: #e3c9a8;
+  --button-text: #222;
+  --button-hover-bg: #c9a66b;
+  --accent: #e3c9a8;
   --poll-bg: #2a2a1f;
   --border-color: #444;
 }
 
-/* ──────────────────────────────────────────────── */
-/* Base layout & resets */
-/* ──────────────────────────────────────────────── */
+body { font-family: system-ui, sans-serif; margin:0; padding:10px; background:var(--bg-color); color:var(--text-color); }
+.hidden { display: none; }
+#loginScreen, #boardSelector, #teacherDashboard, #mainApp { max-width: 700px; margin: auto; }
 
-body {
-  font-family: system-ui, sans-serif;
-  margin: 0;
-  padding: 10px;
-  background: var(--bg-color);
-  color: var(--text-color);
-}
-
-.hidden {
-  display: none;
-}
-
-#login, #app {
-  max-width: 700px;
-  margin: auto;
-}
-
-html {
-  transition: background-color 0.3s, color 0.3s;
-}
-
-/* ──────────────────────────────────────────────── */
-/* Header & Logo */
-/* ──────────────────────────────────────────────── */
-
-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 0;
-  flex-wrap: wrap;
-  gap: 16px;
-}
-
-#logo {
-  font-size: 0;               /* hide any fallback text */
-  line-height: 0;
-}
-
-#logo-img {
-  height: 48px;               /* ← adjust this value to fit your logo nicely */
-  width: auto;
-  display: block;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.header-right button {
-  white-space: nowrap;
-}
-
-[data-theme="dark"] #logo-img {
-  filter: brightness(1.1);
-}
-
-/* ──────────────────────────────────────────────── */
-/* Form elements */
-/* ──────────────────────────────────────────────── */
-
-textarea,
-input {
-  width: 100%;
-  padding: 8px;
-  margin-bottom: 8px;
-  background: var(--input-bg);
-  color: var(--input-text);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  box-sizing: border-box;
-}
+header { display:flex; align-items:center; justify-content:space-between; padding:12px 0; flex-wrap:wrap; gap:12px; }
+#logo-img { height:48px; width:auto; }
 
 button {
-  padding: 8px 12px;
-  cursor: pointer;
-  background: var(--button-bg);
-  color: var(--button-text);
-  border: none;
-  border-radius: 4px;
-  transition: background-color 0.2s;
+  padding:10px 16px; cursor:pointer; background:var(--button-bg); color:var(--button-text);
+  border:none; border-radius:6px; font-weight:600; transition:all 0.2s;
 }
+button:hover { background:var(--button-hover-bg); }
 
-button:hover {
-  background: var(--button-hover-bg);
-}
+.post { background:var(--card-bg); padding:12px; margin-bottom:12px; border-radius:8px; border:1px solid var(--border-color); }
+.reply { margin-left:30px; font-size:0.9em; opacity:0.9; }
 
-/* ──────────────────────────────────────────────── */
-/* Posts & upvotes */
-/* ──────────────────────────────────────────────── */
+.upvoted-by-me { background:#80000022 !important; border-color:var(--maroon) !important; }
+.popcorn-small::after { content:"🍿"; font-size:1.2rem; margin-left:6px; }
+.popcorn-medium::after { content:"🍿"; font-size:1.8rem; margin-left:6px; }
+.popcorn-mega::after { content:"🍿"; font-size:2.6rem; margin-left:6px; }
 
-.post {
-  background: var(--card-bg);
-  padding: 10px;
-  margin-bottom: 10px;
-  border-radius: 6px;
-  border: 1px solid var(--border-color);
-}
+.poll button.voted-by-me { background:var(--maroon) !important; color:white !important; }
 
-.post.upvoted-by-me {
-  background: #80000022;
-  border-color: #80000088;
-  transition: background 0.4s;
-}
+.poll-bar { height:24px; background:#d4a017; margin:4px 0; border-radius:4px; transition:width 0.6s; }
+.poll-bar-container { margin:8px 0; }
 
-[data-theme="dark"] .post.upvoted-by-me {
-  background: #80000044;
-  border-color: #b2222288;
-}
-
-.reply {
-  margin-left: 20px;
-  font-size: 0.9em;
-}
-
-.upvote {
-  cursor: pointer;
-  color: var(--accent);
-}
-
-/* ──────────────────────────────────────────────── */
-/* Polls */
-/* ──────────────────────────────────────────────── */
-
-.poll {
-  background: var(--poll-bg);
-  padding: 10px;
-  margin-bottom: 15px;
-  border-radius: 6px;
-}
-
-.poll button {
-  margin: 5px 8px 5px 0;
-  min-width: 140px;
-  position: relative;
-  transition: all 0.3s;
-}
-
-.poll button.voted-by-me {
-  background: #800000 !important;
-  color: white !important;
-}
-
-[data-theme="dark"] .poll button.voted-by-me {
-  background: #a00000 !important;
-}
-
-.poll button.voted-by-me::after {
-  content: "🍿";
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 1.4rem;
-  animation: popcorn-pop 0.8s ease-out forwards;
-}
-
-@keyframes popcorn-pop {
-  0%   { opacity: 0; transform: translateY(-50%) scale(0.5); }
-  50%  { opacity: 1; transform: translateY(-50%) scale(1.4); }
-  100% { opacity: 0; transform: translateY(-80%) scale(1.2); }
-}
+.confetti { position:absolute; font-size:1.4rem; pointer-events:none; animation:confetti-fall 2s linear forwards; }
+@keyframes confetti-fall { to { transform:translateY(300px) rotate(720deg); opacity:0; } }
