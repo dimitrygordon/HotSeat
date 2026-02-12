@@ -24,30 +24,31 @@ let username = "";
 let isTeacher = false;
 let sortMode = "new";
 
+// Track user interactions (client-side only)
+let myUpvotedPostIds = new Set();    // post IDs this user has upvoted
+let myPollVotes = new Map();         // pollId → chosen option index
+
 // DOM elements
 const loginDiv      = document.getElementById("login");
 const appDiv        = document.getElementById("app");
 const joinBtn       = document.getElementById("joinBtn");
 const usernameInput = document.getElementById("usernameInput");
-const welcome       = document.getElementById("welcome");
 const postInput     = document.getElementById("postInput");
 const postBtn       = document.getElementById("postBtn");
 const postsDiv      = document.getElementById("posts");
 const sortSelect    = document.getElementById("sortSelect");
 const teacherBtn    = document.getElementById("teacherBtn");
 const pollSection   = document.getElementById("pollSection");
+const themeToggle   = document.getElementById("themeToggle");
+const htmlElement   = document.documentElement;
 
 // ────────────────────────────────────────────────
-// Theme handling – moved here after all elements are selected
+// Theme handling
 // ────────────────────────────────────────────────
-const themeToggle = document.getElementById("themeToggle");
-const htmlElement = document.documentElement;
-
 function setTheme(theme) {
   htmlElement.setAttribute("data-theme", theme);
   localStorage.setItem("theme", theme);
   
-  // Update button text/icon
   if (theme === "dark") {
     themeToggle.textContent = "☀️ Light Mode";
   } else {
@@ -61,39 +62,34 @@ function loadTheme() {
   if (savedTheme) {
     setTheme(savedTheme);
   } else {
-    // Respect system preference if no saved choice
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     setTheme(prefersDark ? "dark" : "light");
   }
 }
 
-// Auto-switch when system preference changes (only if user hasn't chosen manually)
 window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", e => {
   if (!localStorage.getItem("theme")) {
     setTheme(e.matches ? "dark" : "light");
   }
 });
 
-// Toggle on click
 themeToggle.addEventListener("click", () => {
-  const currentTheme = htmlElement.getAttribute("data-theme") || "light";
-  setTheme(currentTheme === "dark" ? "light" : "dark");
+  const current = htmlElement.getAttribute("data-theme") || "light";
+  setTheme(current === "dark" ? "light" : "dark");
 });
 
-// Initialize theme immediately
 loadTheme();
 
 // ────────────────────────────────────────────────
 // App logic
 // ────────────────────────────────────────────────
 
-// ✅ Join the session
+// Join session
 joinBtn.onclick = () => {
   username = usernameInput.value.trim();
   if (!username) return;
 
   isTeacher = username === "Dimitry";
-  welcome.textContent = `Welcome, ${username}`;
   if (isTeacher) teacherBtn.classList.remove("hidden");
 
   loginDiv.classList.add("hidden");
@@ -103,7 +99,7 @@ joinBtn.onclick = () => {
   loadPoll();
 };
 
-// ✅ Post a new message
+// Post a new message
 postBtn.onclick = async () => {
   const text = postInput.value.trim();
   if (!text) return;
@@ -118,16 +114,14 @@ postBtn.onclick = async () => {
   postInput.value = "";
 };
 
-// ✅ Sort mode change
+// Sort mode change
 sortSelect.onchange = () => {
   sortMode = sortSelect.value;
   loadPosts();
 };
 
-// ✅ Load posts from Firestore
+// Load posts with upvote tracking
 function loadPosts() {
-  postsDiv.innerHTML = "";
-
   const q = query(
     collection(db, "posts"),
     orderBy(sortMode === "new" ? "timestamp" : "upvotes", "desc")
@@ -139,17 +133,27 @@ function loadPosts() {
       const post = docSnap.data();
       const div = document.createElement("div");
       div.className = "post";
+      if (myUpvotedPostIds.has(docSnap.id)) {
+        div.classList.add("upvoted-by-me");
+      }
 
       div.innerHTML = `
         <strong>${post.author}</strong><br/>
         ${post.text}<br/>
-        <span class="upvote">⬆ ${post.upvotes}</span>
+        <span class="upvote">🍿 ${post.upvotes || 0}</span>
         ${isTeacher ? "<button class='delete'>Delete</button>" : ""}
       `;
 
-      div.querySelector(".upvote").onclick = async () => {
+      const upvoteSpan = div.querySelector(".upvote");
+      upvoteSpan.onclick = async () => {
+        // Prevent multiple upvotes from same user
+        if (myUpvotedPostIds.has(docSnap.id)) return;
+
+        myUpvotedPostIds.add(docSnap.id);
+        div.classList.add("upvoted-by-me");
+
         await updateDoc(doc(db, "posts", docSnap.id), {
-          upvotes: post.upvotes + 1
+          upvotes: (post.upvotes || 0) + 1
         });
       };
 
@@ -164,12 +168,15 @@ function loadPosts() {
   });
 }
 
-// ✅ Teacher: create a poll
+// Teacher creates poll
 teacherBtn.onclick = async () => {
   const question = prompt("Poll question:");
-  const options = prompt("Comma-separated options:").split(",").map(o => o.trim());
+  const optionsStr = prompt("Comma-separated options:");
+  if (!question || !optionsStr) return;
 
-  if (!question || options.length === 0) return;
+  const options = optionsStr.split(",").map(o => o.trim()).filter(o => o);
+
+  if (options.length === 0) return;
 
   await addDoc(collection(db, "polls"), {
     question,
@@ -179,7 +186,7 @@ teacherBtn.onclick = async () => {
   });
 };
 
-// ✅ Load active poll
+// Load & display active poll with vote tracking
 function loadPoll() {
   onSnapshot(collection(db, "polls"), snapshot => {
     pollSection.innerHTML = "";
@@ -190,26 +197,41 @@ function loadPoll() {
 
       const div = document.createElement("div");
       div.className = "poll";
-
       div.innerHTML = `<strong>${poll.question}</strong><br/>`;
+
+      const myChoice = myPollVotes.get(docSnap.id);
 
       poll.options.forEach((opt, i) => {
         const btn = document.createElement("button");
-        btn.textContent = `${opt} (${poll.votes[i]})`;
+        btn.textContent = `${opt} (${poll.votes[i] || 0})`;
+
+        if (myChoice === i) {
+          btn.classList.add("voted-by-me");
+        }
+
         btn.onclick = async () => {
-          poll.votes[i]++;
-          await updateDoc(doc(db, "polls", docSnap.id), { votes: poll.votes });
+          // Prevent multiple votes
+          if (myPollVotes.has(docSnap.id)) return;
+
+          myPollVotes.set(docSnap.id, i);
+          btn.classList.add("voted-by-me");
+
+          const newVotes = [...(poll.votes || Array(poll.options.length).fill(0))];
+          newVotes[i] = (newVotes[i] || 0) + 1;
+
+          await updateDoc(doc(db, "polls", docSnap.id), { votes: newVotes });
         };
+
         div.appendChild(btn);
       });
 
       if (isTeacher) {
-        const close = document.createElement("button");
-        close.textContent = "Close Poll";
-        close.onclick = async () => {
+        const closeBtn = document.createElement("button");
+        closeBtn.textContent = "Close Poll";
+        closeBtn.onclick = async () => {
           await updateDoc(doc(db, "polls", docSnap.id), { active: false });
         };
-        div.appendChild(close);
+        div.appendChild(closeBtn);
       }
 
       pollSection.appendChild(div);
