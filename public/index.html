@@ -16,13 +16,22 @@
 
 <div id="app" class="hidden">
 
-<header>
-<div id="logo">
-  <img src="/popboard-logo.png" alt="PopBoard Logo" id="logo-img">
-</div>
-  <button id="teacherBtn" class="hidden">Teacher Panel</button>
-  <button id="themeToggle">🌙 Dark Mode</button>
-</header>
+  <header>
+    <div id="logo">
+      <!-- Fallback text if image fails to load -->
+      <img 
+        src="/popboard-logo.png" 
+        alt="PopBoard Logo" 
+        id="logo-img" 
+        loading="lazy"
+      >
+    </div>
+
+    <div class="header-right">
+      <button id="teacherBtn" class="hidden">Teacher Panel</button>
+      <button id="themeToggle">🌙 Dark Mode</button>
+    </div>
+  </header>
 
   <section id="pollSection"></section>
 
