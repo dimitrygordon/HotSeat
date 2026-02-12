@@ -10,9 +10,9 @@
 
 <div id="login" class="visible">
   <h2>Join PopBoard</h2>
-  <input id="usernameInput" placeholder="Your display name" />
+  <input id="usernameInput" placeholder="Your display name" autocomplete="off" />
   <div id="boardSelection" class="hidden">
-    <label>Select PopBoard:</label>
+    <label for="boardSelect">Select PopBoard:</label>
     <select id="boardSelect"></select>
   </div>
   <button id="joinBtn">Join</button>
@@ -34,6 +34,10 @@
     <input id="newBoardName" placeholder="New PopBoard name" />
     <button id="createBoardBtn">Create New PopBoard</button>
   </div>
+  <section id="userListSection" class="hidden">
+    <h3>Participants</h3>
+    <ul id="userList"></ul>
+  </section>
 </div>
 
 <div id="app" class="hidden">
@@ -52,8 +56,10 @@
 
   <section id="newPost">
     <textarea id="postInput" placeholder="Write a comment..."></textarea>
-    <label><input type="checkbox" id="anonPostToggle"> 🥷🏼 Post Anonymously</label>
-    <button id="postBtn">Post</button>
+    <div style="margin: 8px 0; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+      <label><input type="checkbox" id="anonPostToggle"> 🥷🏼 Post Anonymously</label>
+      <button id="postBtn">Post</button>
+    </div>
   </section>
 
   <section>
