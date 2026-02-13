@@ -1,12 +1,12 @@
 // Firebase imports
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
-  getFirestore, collection, addDoc, onSnapshot, serverTimestamp,
-  query, orderBy, doc, updateDoc, deleteDoc, runTransaction,
-  getDoc, getDocs, where, limit
+  getFirestore, collection, addDoc, onSnapshot,
+  serverTimestamp, query, orderBy, doc, updateDoc, deleteDoc,
+  increment
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// Firebase config (keep yours)
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyClkHjUnQ96VNRj1FxyY-ca-AcDWYoX_m8",
   authDomain: "hotseat-4f661.firebaseapp.com",
@@ -19,60 +19,64 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// State
+// App state
 let username = "";
 let isTeacher = false;
 let sortMode = "new";
-let lastTopSortRefresh = 0;
-
-// Local user data (persisted in localStorage)
-let myUpvotes     = new Set(JSON.parse(localStorage.getItem("myUpvotes") || "[]"));
-let myPollVotes   = new Map();   // pollId → optionIndex | "free:"+text
-let myAnonymous   = false;
+let myUpvotes = new Map();      // postId → boolean (true = upvoted by me)
 
 // DOM
-const loginDiv       = document.getElementById("login");
-const appDiv         = document.getElementById("app");
-const joinBtn        = document.getElementById("joinBtn");
-const usernameInput  = document.getElementById("usernameInput");
-const postInput      = document.getElementById("postInput");
-const postBtn        = document.getElementById("postBtn");
-const postsDiv       = document.getElementById("posts");
-const sortSelect     = document.getElementById("sortSelect");
-const teacherBtn     = document.getElementById("teacherBtn");
-const pollSection    = document.getElementById("pollSection");
-const themeToggle    = document.getElementById("themeToggle");
-const anonymousToggle= document.getElementById("anonymousToggle");
-const html           = document.documentElement;
+const loginDiv      = document.getElementById("login");
+const appDiv        = document.getElementById("app");
+const joinBtn       = document.getElementById("joinBtn");
+const usernameInput = document.getElementById("usernameInput");
+const postInput     = document.getElementById("postInput");
+const postBtn       = document.getElementById("postBtn");
+const postsDiv      = document.getElementById("posts");
+const sortSelect    = document.getElementById("sortSelect");
+const teacherBtn    = document.getElementById("teacherBtn");
+const pollSection   = document.getElementById("pollSection");
+const themeToggle   = document.getElementById("themeToggle");
+const htmlElement   = document.documentElement;
 
-// ─── Theme ───────────────────────────────────────
+// ────────────────────────────────────────────────
+// Theme
+// ────────────────────────────────────────────────
 function setTheme(theme) {
-  html.setAttribute("data-theme", theme);
+  htmlElement.setAttribute("data-theme", theme);
   localStorage.setItem("theme", theme);
   themeToggle.textContent = theme === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode";
 }
 
 function loadTheme() {
-  let theme = localStorage.getItem("theme");
-  if (!theme) {
-    theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  const saved = localStorage.getItem("theme");
+  if (saved) {
+    setTheme(saved);
+  } else {
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    setTheme(prefersDark ? "dark" : "light");
   }
-  setTheme(theme);
 }
 
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", e => {
+  if (!localStorage.getItem("theme")) setTheme(e.matches ? "dark" : "light");
+});
+
 themeToggle.onclick = () => {
-  const current = html.getAttribute("data-theme") || "light";
+  const current = htmlElement.getAttribute("data-theme") || "light";
   setTheme(current === "dark" ? "light" : "dark");
 };
 
 loadTheme();
 
-// ─── Join ─────────────────────────────────────────
+// ────────────────────────────────────────────────
+// Join
+// ────────────────────────────────────────────────
 joinBtn.onclick = () => {
   username = usernameInput.value.trim();
   if (!username) return;
 
-  isTeacher = username.toLowerCase() === "dimitry"; // case insensitive
+  isTeacher = username === "Dimitry"; // ← change this later to be more secure
   if (isTeacher) teacherBtn.classList.remove("hidden");
 
   loginDiv.classList.add("hidden");
@@ -82,358 +86,214 @@ joinBtn.onclick = () => {
   loadPoll();
 };
 
-// ─── Anonymous toggle ─────────────────────────────
-anonymousToggle.onchange = (e) => {
-  myAnonymous = e.target.checked;
-};
-
-// ─── Post comment ─────────────────────────────────
+// ────────────────────────────────────────────────
+// Post new message
+// ────────────────────────────────────────────────
 postBtn.onclick = async () => {
   const text = postInput.value.trim();
   if (!text) return;
 
-  const data = {
-    author: myAnonymous ? "Anonymous" : username,
+  await addDoc(collection(db, "posts"), {
+    author: username,
     text,
     upvotes: 0,
-    timestamp: serverTimestamp(),
-    isReplyTo: null,          // null = top-level
-    anonymous: myAnonymous
-  };
+    timestamp: serverTimestamp()
+  });
 
-  await addDoc(collection(db, "posts"), data);
   postInput.value = "";
 };
 
-// ─── Sort change ──────────────────────────────────
+// Sort change
 sortSelect.onchange = () => {
   sortMode = sortSelect.value;
   loadPosts();
 };
 
-// ─── Upvote helper ────────────────────────────────
-function getPopcornLevel(count) {
-  if (count >= 10) return { cls: "popcorn-mega",   txt: "🍿🍿🍿" };
-  if (count >= 5)  return { cls: "popcorn-medium", txt: "🍿🍿" };
-  if (count >= 2)  return { cls: "popcorn-small",  txt: "🍿" };
-  return { cls: "", txt: "" };
-}
-
-function addConfetti(parentEl) {
-  for (let i = 0; i < 6; i++) {
-    const c = document.createElement("span");
-    c.className = "confetti";
-    c.textContent = ["🍿","🌟","🎉"][Math.floor(Math.random()*3)];
-    c.style.left = (Math.random()*100)+"%";
-    parentEl.appendChild(c);
-    setTimeout(() => c.remove(), 800);
-  }
-  // Haptic feedback on mobile
-  if (navigator.vibrate) navigator.vibrate(50);
-}
-
-// ─── Load posts (with reply support + throttled top sort) ──────────────
+// ────────────────────────────────────────────────
+// Load & render posts
+// ────────────────────────────────────────────────
 function loadPosts() {
-  const now = Date.now();
-
-  // For "top" sort: refresh only every ~2 minutes
-  if (sortMode === "top" && now - lastTopSortRefresh < 120000) {
-    // skip refresh if too soon
-    return;
-  }
-  if (sortMode === "top") lastTopSortRefresh = now;
-
   const q = query(
     collection(db, "posts"),
     orderBy(sortMode === "new" ? "timestamp" : "upvotes", "desc")
   );
 
-  onSnapshot(q, async (snap) => {
-    // For top sort → get accurate counts via .get() if needed (but here we trust snapshot)
+  onSnapshot(q, snapshot => {
     postsDiv.innerHTML = "";
 
-    const postElements = new Map(); // id → element
-
-    for (const docSnap of snap.docs) {
+    snapshot.forEach(docSnap => {
       const post = docSnap.data();
-      const id = docSnap.id;
+      const postId = docSnap.id;
+      const myVote = myUpvotes.get(postId) === true;
+      const count = post.upvotes || 0;
 
-      const isReply = !!post.isReplyTo;
-      const el = document.createElement("div");
-      el.className = `post ${isReply ? "reply" : ""}`;
-      if (myUpvotes.has(id)) el.classList.add("upvoted-by-me");
-
-      const author = post.anonymous ? "Anonymous" : post.author;
-      let html = `<strong>${author}</strong><br>${post.text}<br>`;
-
-      if (!isReply) {
-        // Only top-level posts get upvote + popcorn
-        const level = getPopcornLevel(post.upvotes || 0);
-        html += `
-          <span class="upvote-area ${level.cls}">
-            ${level.txt}
-          </span>
-        `;
+      // Determine popcorn display (visible to everyone)
+      let popcorn = "";
+      let sizeClass = "";
+      if (count >= 10) {
+        popcorn = "🍿🍿🍿";
+        sizeClass = "mega";
+      } else if (count >= 5) {
+        popcorn = "🍿🍿";
+        sizeClass = "medium";
+      } else if (count >= 2) {
+        popcorn = "🍿";
+        sizeClass = "small";
       }
 
-      if (isTeacher) {
-        html += `<button class="small delete">Delete</button>`;
-      }
+      const div = document.createElement("div");
+      div.className = "post";
+      if (myVote) div.classList.add("upvoted-by-me");
 
-      // Reply button (for top-level only)
-      if (!isReply) {
-        html += `<button class="small reply-btn">Reply</button>`;
-      }
+      div.innerHTML = `
+        <strong>${post.author}</strong><br/>
+        ${post.text}<br/>
+        <span class="upvote ${myVote ? 'active' : ''} ${sizeClass}">
+          ${popcorn || "🍿"}
+        </span>
+        ${isTeacher ? `<span class="teacher-count">(${count})</span>
+                       <button class="delete">Delete</button>` : ""}
+      `;
 
-      el.innerHTML = html;
+      const upvoteEl = div.querySelector(".upvote");
 
-      // Upvote toggle (only for top-level)
-      if (!isReply) {
-        const upvoteArea = el.querySelector(".upvote-area");
-        if (upvoteArea) {
-          upvoteArea.onclick = async () => {
-            const already = myUpvotes.has(id);
-            try {
-              await runTransaction(db, async (t) => {
-                const ref = doc(db, "posts", id);
-                const snap = await t.get(ref);
-                if (!snap.exists()) throw "gone";
-                const cur = snap.data().upvotes || 0;
-                t.update(ref, { upvotes: already ? Math.max(0, cur-1) : cur+1 });
-              });
+      upvoteEl.onclick = async () => {
+        const wasUpvoted = myUpvotes.get(postId) === true;
 
-              if (already) {
-                myUpvotes.delete(id);
-                el.classList.remove("upvoted-by-me");
-              } else {
-                myUpvotes.add(id);
-                el.classList.add("upvoted-by-me");
-                addConfetti(upvoteArea);
-              }
-              localStorage.setItem("myUpvotes", JSON.stringify([...myUpvotes]));
-            } catch(e) {
-              console.error("Upvote failed", e);
-            }
-          };
-        }
-      }
-
-      // Delete
-      if (isTeacher) {
-        el.querySelector(".delete")?.addEventListener("click", async () => {
-          if (confirm("Delete this post?")) {
-            await deleteDoc(doc(db, "posts", id));
-          }
-        });
-      }
-
-      // Reply
-      if (!isReply) {
-        el.querySelector(".reply-btn")?.addEventListener("click", async () => {
-          const text = prompt("Your reply:");
-          if (!text?.trim()) return;
-
-          await addDoc(collection(db, "posts"), {
-            author: myAnonymous ? "Anonymous" : username,
-            text: text.trim(),
-            upvotes: 0,
-            timestamp: serverTimestamp(),
-            isReplyTo: id,
-            anonymous: myAnonymous
-          });
-        });
-      }
-
-      postElements.set(id, el);
-    }
-
-    // Append in correct visual order (replies under parents)
-    snap.docs.forEach(docSnap => {
-      const post = docSnap.data();
-      const el = postElements.get(docSnap.id);
-      if (!post.isReplyTo) {
-        postsDiv.appendChild(el);
-      } else {
-        const parentEl = postElements.get(post.isReplyTo);
-        if (parentEl) {
-          parentEl.appendChild(el);
+        // Optimistic update
+        if (wasUpvoted) {
+          myUpvotes.delete(postId);
+          div.classList.remove("upvoted-by-me");
+          upvoteEl.classList.remove("active");
         } else {
-          postsDiv.appendChild(el); // orphan
+          myUpvotes.set(postId, true);
+          div.classList.add("upvoted-by-me");
+          upvoteEl.classList.add("active");
+          triggerConfetti(upvoteEl);
+          triggerHaptic();
         }
+
+        // Server
+        await updateDoc(doc(db, "posts", postId), {
+          upvotes: increment(wasUpvoted ? -1 : 1)
+        });
+      };
+
+      if (isTeacher) {
+        div.querySelector(".delete").onclick = async () => {
+          if (confirm("Delete this post?")) {
+            await deleteDoc(doc(db, "posts", postId));
+          }
+        };
       }
+
+      postsDiv.appendChild(div);
     });
   });
 }
 
-// ─── Poll logic ───────────────────────────────────
+// ────────────────────────────────────────────────
+// Feedback helpers
+// ────────────────────────────────────────────────
+function triggerHaptic() {
+  if (navigator.vibrate) {
+    navigator.vibrate([8, 25, 8]); // light & pleasant
+  }
+}
+
+function triggerConfetti(element) {
+  const rect = element.getBoundingClientRect();
+  const x = rect.left + rect.width / 2 + window.scrollX;
+  const y = rect.top + window.scrollY - 10;
+
+  for (let i = 0; i < 7; i++) {
+    const k = document.createElement("div");
+    k.textContent = "🍿";
+    k.style.cssText = `
+      position: absolute;
+      left: ${x}px;
+      top: ${y}px;
+      font-size: 13px;
+      pointer-events: none;
+      z-index: 200;
+      transform: translate(-50%, -50%);
+    `;
+    document.body.appendChild(k);
+
+    const angle = (Math.random() - 0.5) * Math.PI * 1.8;
+    const dist = 35 + Math.random() * 45;
+
+    k.animate([
+      { transform: `translate(-50%, -50%) scale(1)`, opacity: 0.95 },
+      { transform: `translate(calc(-50% + ${Math.cos(angle)*dist}px), calc(-50% + ${Math.sin(angle)*dist - 70}px)) scale(0.3)`, opacity: 0 }
+    ], {
+      duration: 500 + Math.random() * 400,
+      easing: "ease-out"
+    }).onfinish = () => k.remove();
+  }
+}
+
+// ────────────────────────────────────────────────
+// Poll logic (unchanged for now)
+// ────────────────────────────────────────────────
 teacherBtn.onclick = async () => {
-  const type = prompt("Poll type?\n1 = Multiple choice\n2 = Free response", "1");
-  if (!type) return;
-
   const question = prompt("Poll question:");
-  if (!question) return;
+  const optionsStr = prompt("Comma-separated options:");
+  if (!question || !optionsStr) return;
 
-  let imageUrl = "";
-  if (confirm("Add an image for context?")) {
-    imageUrl = prompt("Paste direct image URL (png/jpg):")?.trim() || "";
-  }
+  const options = optionsStr.split(",").map(o => o.trim()).filter(o => o);
+  if (options.length === 0) return;
 
-  if (type === "2") {
-    // Free response
-    await addDoc(collection(db, "polls"), {
-      question,
-      type: "free",
-      imageUrl,
-      responses: {},          // uid or anonId → text
-      active: true,
-      closedAt: null
-    });
-  } else {
-    // Multiple choice
-    const optionsStr = prompt("Comma-separated options:");
-    if (!optionsStr) return;
-    const options = optionsStr.split(",").map(o => o.trim()).filter(Boolean);
-    if (options.length < 1) return;
-
-    await addDoc(collection(db, "polls"), {
-      question,
-      type: "mc",
-      options,
-      imageUrl,
-      votes: Array(options.length).fill(0),
-      voters: {},             // voterKey → index
-      active: true,
-      closedAt: null
-    });
-  }
+  await addDoc(collection(db, "polls"), {
+    question,
+    options,
+    votes: Array(options.length).fill(0),
+    active: true
+  });
 };
 
 function loadPoll() {
-  onSnapshot(collection(db, "polls"), snap => {
+  onSnapshot(collection(db, "polls"), snapshot => {
     pollSection.innerHTML = "";
 
-    snap.forEach(docSnap => {
+    snapshot.forEach(docSnap => {
       const poll = docSnap.data();
-      if (!poll.active && !isTeacher) return; // students see only active
+      if (!poll.active) return;
 
       const div = document.createElement("div");
       div.className = "poll";
+      div.innerHTML = `<strong>${poll.question}</strong><br/>`;
 
-      let html = `<strong>${poll.question}</strong><br>`;
-      if (poll.imageUrl) {
-        html += `<img class="poll-context" src="${poll.imageUrl}" alt="poll image">`;
-      }
+      const myChoice = myPollVotes.get(docSnap.id); // assuming you still have myPollVotes Map
 
-      const myVote = myPollVotes.get(docSnap.id);
+      poll.options.forEach((opt, i) => {
+        const btn = document.createElement("button");
+        btn.textContent = `${opt} (${poll.votes[i] || 0})`;
+        if (myChoice === i) btn.classList.add("voted-by-me");
 
-      if (poll.type === "free") {
-        // Free response
-        if (poll.active) {
-          const textarea = document.createElement("textarea");
-          textarea.placeholder = "Type your answer...";
-          textarea.value = myVote?.startsWith("free:") ? myVote.slice(6) : "";
-          const submit = document.createElement("button");
-          submit.textContent = myVote ? "Update Answer" : "Submit";
+        btn.onclick = async () => {
+          if (myPollVotes.has(docSnap.id)) return;
+          myPollVotes.set(docSnap.id, i);
+          btn.classList.add("voted-by-me");
 
-          submit.onclick = async () => {
-            const text = textarea.value.trim();
-            if (!text) return;
+          const newVotes = [...(poll.votes || Array(poll.options.length).fill(0))];
+          newVotes[i]++;
+          await updateDoc(doc(db, "polls", docSnap.id), { votes: newVotes });
+        };
 
-            const key = username || "anon_" + Date.now();
-            await updateDoc(doc(db, "polls", docSnap.id), {
-              [`responses.${key}`]: text
-            });
-            myPollVotes.set(docSnap.id, "free:" + text);
-          };
+        div.appendChild(btn);
+      });
 
-          div.append(textarea, submit);
-        } else if (isTeacher) {
-          // Teacher sees responses
-          html += `<div><em>Free responses (teacher only):</em><ul>`;
-          Object.entries(poll.responses || {}).forEach(([k,v]) => {
-            html += `<li><strong>${k}:</strong> ${v}</li>`;
-          });
-          html += `</ul></div>`;
-        }
-      } else {
-        // Multiple choice
-        poll.options.forEach((opt, i) => {
-          const btn = document.createElement("button");
-          btn.textContent = opt;
-
-          if (myVote === i) btn.classList.add("voted-by-me");
-
-          btn.onclick = async () => {
-            const key = username || "anon_" + Date.now();
-
-            if (myVote === i) {
-              // remove vote
-              const upd = { [`voters.${key}`]: deleteField() };
-              poll.votes[i]--;
-              await updateDoc(doc(db, "polls", docSnap.id), upd);
-              myPollVotes.delete(docSnap.id);
-              btn.classList.remove("voted-by-me");
-            } else {
-              // set / change vote
-              const upd = {
-                [`voters.${key}`]: i,
-                [`votes.${myVote ?? i}`]: myVote != null ? increment(-1) : increment(0),
-                [`votes.${i}`]: increment(1)
-              };
-              await updateDoc(doc(db, "polls", docSnap.id), upd);
-              myPollVotes.set(docSnap.id, i);
-              div.querySelectorAll("button").forEach(b => b.classList.remove("voted-by-me"));
-              btn.classList.add("voted-by-me");
-            }
-          };
-
-          div.appendChild(btn);
-        });
-      }
-
-      if (poll.active && isTeacher) {
+      if (isTeacher) {
         const closeBtn = document.createElement("button");
-        closeBtn.textContent = "Close Poll & Show Results";
+        closeBtn.textContent = "Close Poll";
         closeBtn.onclick = async () => {
-          await updateDoc(doc(db, "polls", docSnap.id), {
-            active: false,
-            closedAt: serverTimestamp()
-          });
+          await updateDoc(doc(db, "polls", docSnap.id), { active: false });
         };
         div.appendChild(closeBtn);
-      }
-
-      if (!poll.active) {
-        // Show results (bar chart)
-        const resDiv = document.createElement("div");
-        resDiv.className = "poll-results";
-        resDiv.innerHTML = "<strong>Results:</strong>";
-
-        if (poll.type === "mc") {
-          const total = poll.votes.reduce((a,b)=>a+b,0) || 1;
-          poll.options.forEach((opt,i) => {
-            const pct = Math.round((poll.votes[i] || 0) / total * 100);
-            const bar = document.createElement("div");
-            bar.className = "bar-container";
-            bar.innerHTML = `
-              <div class="bar" style="width:${pct}%">
-                ${opt} — ${poll.votes[i] || 0} (${pct}%)
-              </div>
-            `;
-            resDiv.appendChild(bar);
-          });
-        } else if (isTeacher) {
-          resDiv.innerHTML += " (free responses visible in teacher view only)";
-        }
-
-        div.appendChild(resDiv);
       }
 
       pollSection.appendChild(div);
     });
   });
 }
-
-// Start
-loadPosts();
-loadPoll();
