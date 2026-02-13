@@ -18,7 +18,12 @@
 
   <header>
     <div id="logo">
-      <img src="/popboard-logo.png" alt="PopBoard Logo" id="logo-img" loading="lazy">
+      <img 
+        src="/popboard-logo.png" 
+        alt="PopBoard Logo" 
+        id="logo-img" 
+        loading="lazy"
+      >
     </div>
 
     <div class="header-right">
@@ -30,12 +35,7 @@
   <section id="pollSection"></section>
 
   <section id="newPost">
-    <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
-      <textarea id="postInput" placeholder="Write a comment or question..."></textarea>
-      <label style="white-space:nowrap; cursor:pointer;">
-        <input type="checkbox" id="anonymousToggle"> 🥷 Post Anonymously
-      </label>
-    </div>
+    <textarea id="postInput" placeholder="Write a comment..."></textarea>
     <button id="postBtn">Post</button>
   </section>
 
@@ -49,6 +49,15 @@
   <section id="posts"></section>
 
 </div>
+
+<!-- Hidden template for reply input -->
+<template id="reply-input-template">
+  <div class="reply-input-area" style="margin: 10px 0 6px 28px; display:flex; gap:8px; align-items:center;">
+    <textarea class="reply-text" placeholder="Reply..." rows="2" style="flex:1;"></textarea>
+    <button class="reply-send-btn">Send</button>
+    <button class="reply-cancel-btn">Cancel</button>
+  </div>
+</template>
 
 <script type="module" src="app.js"></script>
 </body>
