@@ -33,9 +33,7 @@
   --upvoted-bg: #3a1f1f;
 }
 
-/* ──────────────────────────────────────────────── */
-/* Base layout & resets (minimal changes)           */
-/* ──────────────────────────────────────────────── */
+/* Base layout & resets */
 body {
   font-family: system-ui, sans-serif;
   margin: 0;
@@ -44,18 +42,11 @@ body {
   color: var(--text-color);
 }
 
-.hidden {
-  display: none;
-}
+.hidden { display: none; }
 
-#login, #app {
-  max-width: 700px;
-  margin: auto;
-}
+#login, #app { max-width: 700px; margin: auto; }
 
-/* ──────────────────────────────────────────────── */
-/* Header & Logo - constrain size                   */
-/* ──────────────────────────────────────────────── */
+/* Header & Logo */
 header {
   display: flex;
   align-items: center;
@@ -65,28 +56,20 @@ header {
   gap: 16px;
 }
 
-#logo {
-  font-size: 0;
-  line-height: 0;
-}
-
 #logo-img {
-  height: 48px;          /* fixed reasonable size - adjust if needed */
+  height: 48px;
   width: auto;
-  max-width: 220px;      /* prevent extreme widening */
+  max-width: 220px;
   display: block;
   object-fit: contain;
 }
 
 [data-theme="dark"] #logo-img {
-  filter: brightness(1.1); /* optional - helps visibility */
+  filter: brightness(1.1);
 }
 
-/* ──────────────────────────────────────────────── */
-/* Form elements - keep original sizing feel        */
-/* ──────────────────────────────────────────────── */
-textarea,
-input {
+/* Form elements */
+textarea, input {
   width: 100%;
   padding: 8px;
   margin-bottom: 8px;
@@ -95,11 +78,11 @@ input {
   border: 1px solid var(--border-color);
   border-radius: 4px;
   box-sizing: border-box;
-  font-size: 1rem;       /* prevent accidental zoom/shrink */
+  font-size: 1rem;
 }
 
 button {
-  padding: 8px 12px;     /* original comfortable size */
+  padding: 8px 12px;
   cursor: pointer;
   background: var(--button-bg);
   color: var(--button-text);
@@ -112,9 +95,7 @@ button:hover {
   background: var(--button-hover-bg);
 }
 
-/* ──────────────────────────────────────────────── */
-/* Posts, upvotes, polls - color only               */
-/* ──────────────────────────────────────────────── */
+/* Posts & upvotes */
 .post {
   background: var(--card-bg);
   padding: 10px;
@@ -131,8 +112,23 @@ button:hover {
 .upvote {
   cursor: pointer;
   color: var(--accent);
+  user-select: none;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: all 0.15s;
 }
 
+.upvote:hover {
+  background: rgba(212,163,115,0.12);
+}
+
+.post.upvoted-by-me .upvote {
+  color: var(--upvote-active);
+  font-weight: bold;
+  background: rgba(128,0,0,0.08);
+}
+
+/* Poll */
 .poll {
   background: var(--poll-bg);
   padding: 10px;
@@ -140,5 +136,21 @@ button:hover {
   border-radius: 6px;
 }
 
+.poll button {
+  margin: 5px 8px 5px 0;
+  min-width: 140px;
+  position: relative;
+  transition: all 0.2s;
+}
+
 .poll button.voted-by-me {
-  background: var(--up
+  background: var(--upvote-active) !important;
+  color: white !important;
+  box-shadow: 0 2px 8px rgba(128,0,0,0.3);
+}
+
+.poll button.voted-by-me::after {
+  content: "✓";
+  margin-left: 6px;
+  font-weight: bold;
+}
