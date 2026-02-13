@@ -114,23 +114,44 @@ sortSelect.onchange = () => {
 
 function createPopcornParticles(element, isRemoving = false) {
   const rect = element.getBoundingClientRect();
-  const count = Math.floor(Math.random() * 3) + 3; // 3–5 particles
+  const count = isRemoving ? 3 : 6;   // fewer when removing, more when adding
 
   for (let i = 0; i < count; i++) {
     const popcorn = document.createElement("span");
     popcorn.textContent = "🍿";
+    
+    // Class based on action
     popcorn.className = isRemoving ? "popcorn-remove" : "popcorn-confetti";
 
-    // Random horizontal spread
-    const dx = (Math.random() - 0.5) * 60;
-    popcorn.style.setProperty("--dx", `${dx}px`);
+    // Random direction (full 360° burst, slight upward bias)
+    const angle = Math.random() * Math.PI * 2;
+    const distance = 50 + Math.random() * 70; // 50–120 px spread
+    const dx = Math.cos(angle) * distance;
+    const dy = Math.sin(angle) * distance - 30; // bias upward
 
-    // Position near the upvote icon
-    popcorn.style.left = `${rect.left + rect.width / 2 - 10}px`;
-    popcorn.style.top  = `${rect.top + rect.height / 2 - 10}px`;
+    // Random size variation (Option 2)
+    const size = 0.9 + Math.random() * 0.7; // 0.9rem – 1.6rem
+    popcorn.style.fontSize = `${size}rem`;
+
+    // Random slight delay (Option 2)
+    const delay = Math.random() * 0.14; // 0–140ms stagger
+    popcorn.style.setProperty("--delay", `${delay}s`);
+
+    // Random hue shift for party feel (Option 3)
+    const hueShift = Math.random() * 60 - 30; // -30° to +30° around base
+    popcorn.style.setProperty("--hue-offset", `${hueShift}deg`);
+
+    // Position at center of the 🍿 icon
+    popcorn.style.left = `${rect.left + rect.width / 2}px`;
+    popcorn.style.top  = `${rect.top + rect.height / 2}px`;
+
+    // Apply random translation via custom properties
+    popcorn.style.setProperty("--tx", `${dx}px`);
+    popcorn.style.setProperty("--ty", `${dy}px`);
 
     document.body.appendChild(popcorn);
 
+    // Clean up after animation
     popcorn.addEventListener("animationend", () => popcorn.remove());
   }
 }
