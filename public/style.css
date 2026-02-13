@@ -122,12 +122,6 @@ button:hover {
   background: rgba(212,163,115,0.12);
 }
 
-.post.upvoted-by-me .upvote {
-  color: var(--upvote-active);
-  font-weight: bold;
-  background: rgba(128,0,0,0.08);
-}
-
 /* Poll */
 .poll {
   background: var(--poll-bg);
