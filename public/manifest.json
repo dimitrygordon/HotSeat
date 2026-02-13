@@ -1,0 +1,21 @@
+{
+  "name": "PopBoard",
+  "short_name": "PopBoard",
+  "description": "Interactive classroom discussion platform",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8f5f0",
+  "theme_color": "#d4a373",
+  "icons": [
+    {
+      "src": "/popboard-logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/popboard-logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
