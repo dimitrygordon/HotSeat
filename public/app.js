@@ -108,7 +108,42 @@ sortSelect.onchange = () => {
   loadPosts();
 };
 
-// Load posts with toggle upvote
+// ────────────────────────────────────────────────
+// Upvote feedback helpers
+// ────────────────────────────────────────────────
+
+function createPopcornParticles(element, isRemoving = false) {
+  const rect = element.getBoundingClientRect();
+  const count = Math.floor(Math.random() * 3) + 3; // 3–5 particles
+
+  for (let i = 0; i < count; i++) {
+    const popcorn = document.createElement("span");
+    popcorn.textContent = "🍿";
+    popcorn.className = isRemoving ? "popcorn-remove" : "popcorn-confetti";
+
+    // Random horizontal spread
+    const dx = (Math.random() - 0.5) * 60;
+    popcorn.style.setProperty("--dx", `${dx}px`);
+
+    // Position near the upvote icon
+    popcorn.style.left = `${rect.left + rect.width / 2 - 10}px`;
+    popcorn.style.top  = `${rect.top + rect.height / 2 - 10}px`;
+
+    document.body.appendChild(popcorn);
+
+    popcorn.addEventListener("animationend", () => popcorn.remove());
+  }
+}
+
+function triggerHaptic() {
+  if ("vibrate" in navigator) {
+    navigator.vibrate([12, 25, 12]); // short buzz pattern
+  }
+}
+
+// ────────────────────────────────────────────────
+// Load posts with toggle upvote + feedback
+// ────────────────────────────────────────────────
 function loadPosts() {
   const q = query(
     collection(db, "posts"),
@@ -146,22 +181,34 @@ function loadPosts() {
         const already = myUpvotedPostIds.has(postId);
         const ref = doc(db, "posts", postId);
 
-        if (already) {
-          // Remove upvote
-          myUpvotedPostIds.delete(postId);
-          div.classList.remove("upvoted-by-me");
-          await updateDoc(ref, {
-            upvoters: arrayRemove(username),
-            upvotes: increment(-1)
-          });
-        } else {
-          // Add upvote
-          myUpvotedPostIds.add(postId);
-          div.classList.add("upvoted-by-me");
-          await updateDoc(ref, {
-            upvoters: arrayUnion(username),
-            upvotes: increment(1)
-          });
+        try {
+          if (already) {
+            // Remove upvote
+            myUpvotedPostIds.delete(postId);
+            div.classList.remove("upvoted-by-me");
+
+            await updateDoc(ref, {
+              upvoters: arrayRemove(username),
+              upvotes: increment(-1)
+            });
+
+            createPopcornParticles(upvoteSpan, true);  // removing animation
+            triggerHaptic();
+          } else {
+            // Add upvote
+            myUpvotedPostIds.add(postId);
+            div.classList.add("upvoted-by-me");
+
+            await updateDoc(ref, {
+              upvoters: arrayUnion(username),
+              upvotes: increment(1)
+            });
+
+            createPopcornParticles(upvoteSpan, false); // happy confetti
+            triggerHaptic();
+          }
+        } catch (err) {
+          console.error("Upvote failed:", err);
         }
       };
 
@@ -232,7 +279,6 @@ function loadPoll() {
             // Add new / change vote
             myPollVotes.set(docSnap.id, i);
 
-            // Remove previous vote if any
             if (prevChoice !== undefined) {
               await updateDoc(pollRef, {
                 voters: arrayRemove(username),
