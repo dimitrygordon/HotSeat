@@ -1,11 +1,12 @@
-// 🔥 Firebase imports (ES module via CDN)
+// Firebase imports
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getFirestore, collection, addDoc, onSnapshot,
-  serverTimestamp, query, orderBy, doc, updateDoc, deleteDoc
+  serverTimestamp, query, orderBy, doc, updateDoc, deleteDoc,
+  increment, arrayUnion, arrayRemove
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// 🔥 Firebase config
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyClkHjUnQ96VNRj1FxyY-ca-AcDWYoX_m8",
   authDomain: "hotseat-4f661.firebaseapp.com",
@@ -15,17 +16,15 @@ const firebaseConfig = {
   appId: "1:1052089495081:web:15293be177ad3a6f577638"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// 🌟 App state
+// App state
 let username = "";
 let isTeacher = false;
 let sortMode = "new";
 
-// Track user interactions (client-side only)
-let myUpvotedPostIds = new Set();    // post IDs this user has upvoted
+let myUpvotedPostIds = new Set();    // post IDs upvoted by this user
 let myPollVotes = new Map();         // pollId → chosen option index
 
 // DOM elements
@@ -42,25 +41,17 @@ const pollSection   = document.getElementById("pollSection");
 const themeToggle   = document.getElementById("themeToggle");
 const htmlElement   = document.documentElement;
 
-// ────────────────────────────────────────────────
 // Theme handling
-// ────────────────────────────────────────────────
 function setTheme(theme) {
   htmlElement.setAttribute("data-theme", theme);
   localStorage.setItem("theme", theme);
-  
-  if (theme === "dark") {
-    themeToggle.textContent = "☀️ Light Mode";
-  } else {
-    themeToggle.textContent = "🌙 Dark Mode";
-  }
+  themeToggle.textContent = theme === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode";
 }
 
 function loadTheme() {
-  const savedTheme = localStorage.getItem("theme");
-  
-  if (savedTheme) {
-    setTheme(savedTheme);
+  const saved = localStorage.getItem("theme");
+  if (saved) {
+    setTheme(saved);
   } else {
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     setTheme(prefersDark ? "dark" : "light");
@@ -79,10 +70,6 @@ themeToggle.addEventListener("click", () => {
 });
 
 loadTheme();
-
-// ────────────────────────────────────────────────
-// App logic
-// ────────────────────────────────────────────────
 
 // Join session
 joinBtn.onclick = () => {
@@ -108,6 +95,7 @@ postBtn.onclick = async () => {
     author: username,
     text,
     upvotes: 0,
+    upvoters: [],
     timestamp: serverTimestamp()
   });
 
@@ -120,7 +108,7 @@ sortSelect.onchange = () => {
   loadPosts();
 };
 
-// Load posts with upvote tracking
+// Load posts with toggle upvote
 function loadPosts() {
   const q = query(
     collection(db, "posts"),
@@ -131,9 +119,18 @@ function loadPosts() {
     postsDiv.innerHTML = "";
     snapshot.forEach(docSnap => {
       const post = docSnap.data();
+      const postId = docSnap.id;
+
+      // Sync local upvote state from server
+      if (post.upvoters?.includes(username)) {
+        myUpvotedPostIds.add(postId);
+      } else {
+        myUpvotedPostIds.delete(postId);
+      }
+
       const div = document.createElement("div");
       div.className = "post";
-      if (myUpvotedPostIds.has(docSnap.id)) {
+      if (myUpvotedPostIds.has(postId)) {
         div.classList.add("upvoted-by-me");
       }
 
@@ -146,20 +143,31 @@ function loadPosts() {
 
       const upvoteSpan = div.querySelector(".upvote");
       upvoteSpan.onclick = async () => {
-        // Prevent multiple upvotes from same user
-        if (myUpvotedPostIds.has(docSnap.id)) return;
+        const already = myUpvotedPostIds.has(postId);
+        const ref = doc(db, "posts", postId);
 
-        myUpvotedPostIds.add(docSnap.id);
-        div.classList.add("upvoted-by-me");
-
-        await updateDoc(doc(db, "posts", docSnap.id), {
-          upvotes: (post.upvotes || 0) + 1
-        });
+        if (already) {
+          // Remove upvote
+          myUpvotedPostIds.delete(postId);
+          div.classList.remove("upvoted-by-me");
+          await updateDoc(ref, {
+            upvoters: arrayRemove(username),
+            upvotes: increment(-1)
+          });
+        } else {
+          // Add upvote
+          myUpvotedPostIds.add(postId);
+          div.classList.add("upvoted-by-me");
+          await updateDoc(ref, {
+            upvoters: arrayUnion(username),
+            upvotes: increment(1)
+          });
+        }
       };
 
       if (isTeacher) {
         div.querySelector(".delete").onclick = async () => {
-          await deleteDoc(doc(db, "posts", docSnap.id));
+          await deleteDoc(doc(db, "posts", postId));
         };
       }
 
@@ -175,18 +183,18 @@ teacherBtn.onclick = async () => {
   if (!question || !optionsStr) return;
 
   const options = optionsStr.split(",").map(o => o.trim()).filter(o => o);
-
   if (options.length === 0) return;
 
   await addDoc(collection(db, "polls"), {
     question,
     options,
     votes: Array(options.length).fill(0),
+    voters: [],
     active: true
   });
 };
 
-// Load & display active poll with vote tracking
+// Load & display active poll with toggle/change vote
 function loadPoll() {
   onSnapshot(collection(db, "polls"), snapshot => {
     pollSection.innerHTML = "";
@@ -203,23 +211,40 @@ function loadPoll() {
 
       poll.options.forEach((opt, i) => {
         const btn = document.createElement("button");
-        btn.textContent = `${opt} (${poll.votes[i] || 0})`;
+        btn.textContent = `${opt} (${poll.votes?.[i] || 0})`;
 
         if (myChoice === i) {
           btn.classList.add("voted-by-me");
         }
 
         btn.onclick = async () => {
-          // Prevent multiple votes
-          if (myPollVotes.has(docSnap.id)) return;
+          const pollRef = doc(db, "polls", docSnap.id);
+          const prevChoice = myPollVotes.get(docSnap.id);
 
-          myPollVotes.set(docSnap.id, i);
-          btn.classList.add("voted-by-me");
+          if (prevChoice === i) {
+            // Remove vote
+            myPollVotes.delete(docSnap.id);
+            await updateDoc(pollRef, {
+              voters: arrayRemove(username),
+              [`votes.${i}`]: increment(-1)
+            });
+          } else {
+            // Add new / change vote
+            myPollVotes.set(docSnap.id, i);
 
-          const newVotes = [...(poll.votes || Array(poll.options.length).fill(0))];
-          newVotes[i] = (newVotes[i] || 0) + 1;
+            // Remove previous vote if any
+            if (prevChoice !== undefined) {
+              await updateDoc(pollRef, {
+                voters: arrayRemove(username),
+                [`votes.${prevChoice}`]: increment(-1)
+              });
+            }
 
-          await updateDoc(doc(db, "polls", docSnap.id), { votes: newVotes });
+            await updateDoc(pollRef, {
+              voters: arrayUnion(username),
+              [`votes.${i}`]: increment(1)
+            });
+          }
         };
 
         div.appendChild(btn);
