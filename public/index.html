@@ -41,13 +41,14 @@
   </div>
 </div>
 
-<!-- Board Name Entry -->
+<!-- Board Name Entry (Student) -->
 <div id="boardNameEntry" class="hidden">
   <div class="login-logo">
     <img src="/popboard-logo.png" alt="PopBoard Logo" id="boardname-logo-img" />
   </div>
   <h2>Enter PopBoard Name</h2>
   <input id="boardNameInput" placeholder="PopBoard name" />
+  <input id="studentPasswordInput" type="password" placeholder="Your Password (Recommended)" />
   <div class="login-buttons">
     <button id="enterBoardBtn">Enter</button>
     <button id="backToLoginBtn" class="secondary-btn">Back</button>
@@ -76,6 +77,43 @@
   </div>
 </div>
 
+<!-- Students Portal (Teacher View) -->
+<div id="studentsPortal" class="hidden">
+  <header>
+    <div id="logo">
+      <img src="/popboard-logo.png" alt="PopBoard Logo" id="logo-img" loading="lazy" />
+    </div>
+    <div class="header-right">
+      <button id="backToBoardFromStudents">Back to Board</button>
+      <button id="logoutBtnStudents">Logout</button>
+      <button id="themeToggleStudents">🌙 Dark Mode</button>
+    </div>
+  </header>
+  
+  <div class="portal-container">
+    <h2>Students</h2>
+    <div id="studentsList"></div>
+  </div>
+</div>
+
+<!-- Student Dashboard -->
+<div id="studentDashboard" class="hidden">
+  <header>
+    <div id="logo">
+      <img src="/popboard-logo.png" alt="PopBoard Logo" id="logo-img" loading="lazy" />
+    </div>
+    <div class="header-right">
+      <button id="backToStudentsFromDashboard">Back to Students</button>
+      <button id="logoutBtnDashboard">Logout</button>
+      <button id="themeToggleDashboard">🌙 Dark Mode</button>
+    </div>
+  </header>
+  
+  <div class="portal-container">
+    <div id="dashboardContent"></div>
+  </div>
+</div>
+
 <!-- Main App (Inside a PopBoard) -->
 <div id="app" class="hidden">
 
@@ -85,10 +123,15 @@
       <img src="/popboard-logo.png" alt="PopBoard Logo" id="logo-img" loading="lazy" />
     </div>
     <div class="header-right">
-      <button id="backToPortalBtn" class="hidden">Back to Boards</button>
-      <button id="teacherBtn" class="hidden">Teacher Panel</button>
-      <button id="logoutBtnApp">Logout</button>
-      <button id="themeToggle">🌙 Dark Mode</button>
+      <div class="header-top-row">
+        <button id="backToPortalBtn" class="hidden">Back to Boards</button>
+        <button id="studentsBtn" class="hidden">Students</button>
+        <button id="teacherBtn" class="hidden">Teacher Panel</button>
+      </div>
+      <div class="header-bottom-row">
+        <button id="logoutBtnApp">Logout</button>
+        <button id="themeToggle">🌙 Dark Mode</button>
+      </div>
     </div>
   </header>
 
