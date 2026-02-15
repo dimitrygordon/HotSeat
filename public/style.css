@@ -1,287 +1,618 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   PopBoard 2.3 - Premium Dark Design System with Final Polish
+   ══════════════════════════════════════════════════════════════════════════ */
+
 /* ──────────────────────────────────────────────── */
-/* Color palette - cream/tan primary                 */
+/* Color System - Dark Mode (Primary)               */
 /* ──────────────────────────────────────────────── */
 :root {
-  --bg-color: #f8f5f0;
-  --text-color: #3c2f2f;
-  --card-bg: #fffaf0;
-  --input-bg: #fffaf0;
-  --input-text: #3c2f2f;
-  --button-bg: #f5e8c7;
-  --button-text: #4a3728;
-  --button-hover-bg: #e0d0a8;
-  --accent: #d4a373;
-  --poll-bg: #fff8e8;
-  --border-color: #e0d4c0;
-  --upvote-active: #800000;
-  --upvoted-bg: #fff0f0;
+  /* Light mode colors */
+  --bg-color: #f5f5f7;
+  --bg-secondary: #ffffff;
+  --text-color: #1d1d1f;
+  --text-secondary: #6e6e73;
+  --card-bg: #ffffff;
+  --card-gradient-start: #ffffff;
+  --card-gradient-end: #fafafa;
+  --input-bg: #ffffff;
+  --input-text: #1d1d1f;
+  --input-border: rgba(0, 0, 0, 0.1);
+  --button-bg: transparent;
+  --button-text: #1d1d1f;
+  --button-border: rgba(0, 0, 0, 0.2);
+  --button-hover-bg: rgba(0, 0, 0, 0.05);
+  --accent: #0071e3;
+  --accent-hover: #0077ed;
+  --border-color: rgba(0, 0, 0, 0.08);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+  --upvote-active: #d4a373;
+  --upvoted-bg: #fff9f0;
+  --delete-color: #ff3b30;
+  --hidden-text-color: #ff3b30;
+  --checkbox-bg: #e0e0e0;
+  --checkbox-checked: #0071e3;
 }
 
 [data-theme="dark"] {
-  --bg-color: #1a1410;
-  --text-color: #e8d9c5;
-  --card-bg: #2a1f18;
-  --input-bg: #33251f;
-  --input-text: #e8d9c5;
-  --button-bg: #d4a373;
-  --button-text: #1a1410;
-  --button-hover-bg: #b58955;
-  --accent: #f5e8c7;
-  --poll-bg: #2f241c;
-  --border-color: #4a3728;
-  --upvote-active: #c75151;
-  --upvoted-bg: #3a1f1f;
+  /* Dark mode colors - matching reference image */
+  --bg-color: #0a0a0a;
+  --bg-secondary: #111111;
+  --text-color: #f5f5f7;
+  --text-secondary: #a1a1a6;
+  --card-bg: #1c1c1e;
+  --card-gradient-start: rgba(28, 28, 30, 1);
+  --card-gradient-end: rgba(20, 20, 22, 1);
+  --input-bg: rgba(255, 255, 255, 0.05);
+  --input-text: #f5f5f7;
+  --input-border: rgba(255, 255, 255, 0.1);
+  --button-bg: transparent;
+  --button-text: #f5f5f7;
+  --button-border: rgba(255, 255, 255, 0.2);
+  --button-hover-bg: rgba(255, 255, 255, 0.05);
+  --accent: #0a84ff;
+  --accent-hover: #409cff;
+  --border-color: rgba(255, 255, 255, 0.08);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --upvote-active: #d4a373;
+  --upvoted-bg: rgba(212, 163, 115, 0.1);
+  --delete-color: #ff453a;
+  --hidden-text-color: #ff453a;
+  --checkbox-bg: rgba(255, 255, 255, 0.15);
+  --checkbox-checked: #0a84ff;
 }
 
-/* Base layout & resets */
+/* ──────────────────────────────────────────────── */
+/* Base Styles & Layout                             */
+/* ──────────────────────────────────────────────── */
+
+* {
+  box-sizing: border-box;
+}
+
 body {
-  font-family: system-ui, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
   margin: 0;
-  padding: 10px;
+  padding: 20px;
   background: var(--bg-color);
   color: var(--text-color);
+  line-height: 1.6;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-.hidden { display: none; }
+.hidden { 
+  display: none; 
+}
 
-#login, #app { max-width: 700px; margin: auto; }
+#login, #app, #boardNameEntry { 
+  max-width: 720px; 
+  margin: 0 auto; 
+}
 
-/* Header & Logo */
+/* ──────────────────────────────────────────────── */
+/* Login Section                                     */
+/* ──────────────────────────────────────────────── */
+
+#login {
+  margin-top: 80px;
+  text-align: center;
+}
+
+#login h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 32px;
+  background: linear-gradient(135deg, var(--text-color) 0%, var(--text-secondary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ──────────────────────────────────────────────── */
+/* Board Name Entry Page (Match Login Style)        */
+/* ──────────────────────────────────────────────── */
+
+#boardNameEntry {
+  margin-top: 80px;
+  text-align: center;
+}
+
+#boardNameEntry h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 32px;
+  background: linear-gradient(135deg, var(--text-color) 0%, var(--text-secondary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ──────────────────────────────────────────────── */
+/* Login Page Redesign                               */
+/* ──────────────────────────────────────────────── */
+
+.login-logo {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+#login-logo-img,
+#boardname-logo-img {
+  height: 80px;
+  width: auto;
+  max-width: 280px;
+  display: inline-block;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.15));
+}
+
+[data-theme="dark"] #login-logo-img,
+[data-theme="dark"] #boardname-logo-img {
+  filter: brightness(1.1) drop-shadow(0 4px 16px rgba(255, 255, 255, 0.1));
+}
+
+.login-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.secondary-btn {
+  background: transparent !important;
+  color: var(--text-secondary) !important;
+  border-color: var(--border-color) !important;
+}
+
+.secondary-btn:hover {
+  background: var(--button-hover-bg) !important;
+  color: var(--text-color) !important;
+}
+
+/* ──────────────────────────────────────────────── */
+/* Header & Logo                                     */
+/* ──────────────────────────────────────────────── */
+
 header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 0;
+  padding: 20px 0 32px 0;
   flex-wrap: wrap;
   gap: 16px;
 }
 
 #logo-img {
-  height: 48px;
+  height: 52px;
   width: auto;
   max-width: 220px;
   display: block;
   object-fit: contain;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1));
 }
 
 [data-theme="dark"] #logo-img {
-  filter: brightness(1.1);
+  filter: brightness(1.1) drop-shadow(0 2px 8px rgba(255, 255, 255, 0.05));
 }
 
-/* Form elements */
-textarea, input {
+.header-right {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* ──────────────────────────────────────────────── */
+/* Poll Creation Section (at top)                    */
+/* ──────────────────────────────────────────────── */
+
+#pollCreation {
+  background: linear-gradient(135deg, var(--card-gradient-start) 0%, var(--card-gradient-end) 100%);
+  border: 1.5px solid var(--border-color);
+  border-radius: 24px;
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-md);
+}
+
+#pollCreation h3 {
+  margin: 0 0 16px 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+#pollCreation input {
+  margin-bottom: 12px;
+}
+
+#pollCreation .poll-type-buttons {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+/* ──────────────────────────────────────────────── */
+/* Form Elements - Premium Style                     */
+/* ──────────────────────────────────────────────── */
+
+textarea, 
+input[type="text"],
+#usernameInput,
+#boardNameInput,
+#newBoardNameInput {
   width: 100%;
-  padding: 8px;
-  margin-bottom: 8px;
+  padding: 16px 20px;
+  margin-bottom: 12px;
   background: var(--input-bg);
   color: var(--input-text);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  box-sizing: border-box;
+  border: 1.5px solid var(--input-border);
+  border-radius: 16px;
   font-size: 1rem;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  resize: vertical;
+  min-height: 52px;
 }
 
+textarea:focus, 
+input[type="text"]:focus,
+#usernameInput:focus,
+#boardNameInput:focus,
+#newBoardNameInput:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--input-bg);
+  box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.1);
+}
+
+textarea::placeholder,
+input::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+
+select {
+  padding: 10px 16px;
+  background: var(--input-bg);
+  color: var(--text-color);
+  border: 1.5px solid var(--input-border);
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.1);
+}
+
+/* ──────────────────────────────────────────────── */
+/* Buttons - Pill-Shaped with Borders               */
+/* ──────────────────────────────────────────────── */
+
 button {
-  padding: 8px 12px;
+  padding: 12px 28px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
   cursor: pointer;
   background: var(--button-bg);
   color: var(--button-text);
-  border: none;
-  border-radius: 4px;
-  transition: background-color 0.2s;
+  border: 1.5px solid var(--button-border);
+  border-radius: 999px; /* Pill shape */
+  transition: all 0.2s ease;
+  font-family: inherit;
+  white-space: nowrap;
 }
 
 button:hover {
   background: var(--button-hover-bg);
+  border-color: var(--text-color);
+  transform: translateY(-1px);
 }
 
-/* Posts & upvotes */
+button:active {
+  transform: translateY(0);
+}
+
+/* Primary action buttons */
+#postBtn,
+#joinBtn,
+#enterBoardBtn,
+#createBoardBtn {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+#postBtn:hover,
+#joinBtn:hover,
+#enterBoardBtn:hover,
+#createBoardBtn:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* ──────────────────────────────────────────────── */
+/* Teacher Control Buttons - Uniform Small Size     */
+/* ──────────────────────────────────────────────── */
+
+button.teacher-control,
+button.hide-toggle,
+.reply button.hide-toggle,
+.post button.delete,
+.reply button:not(.hide-toggle) {
+  padding: 6px 14px !important;
+  font-size: 0.8rem !important;
+  margin-left: 6px !important;
+  min-width: auto !important;
+  line-height: 1.2 !important;
+}
+
+/* Hide/Show Toggle Buttons */
+button.hide-toggle,
+.reply button.hide-toggle {
+  background: var(--button-bg) !important;
+  color: var(--button-text) !important;
+  border: 1.5px solid var(--button-border) !important;
+}
+
+button.hide-toggle:hover,
+.reply button.hide-toggle:hover {
+  background: var(--button-hover-bg) !important;
+  border-color: var(--text-color) !important;
+}
+
+/* Delete Buttons - Red */
+.post button.delete,
+.reply button.delete-btn,
+button.delete-poll {
+  background: var(--delete-color) !important;
+  color: white !important;
+  border-color: var(--delete-color) !important;
+}
+
+.post button.delete:hover,
+.reply button.delete-btn:hover,
+button.delete-poll:hover {
+  background: color-mix(in srgb, var(--delete-color) 85%, black) !important;
+  border-color: color-mix(in srgb, var(--delete-color) 85%, black) !important;
+}
+
+/* ──────────────────────────────────────────────── */
+/* Card System - Gradient Backgrounds               */
+/* ──────────────────────────────────────────────── */
+
+.post, .poll, .teacher-panel, #newPost {
+  background: linear-gradient(135deg, var(--card-gradient-start) 0%, var(--card-gradient-end) 100%);
+  border: 1.5px solid var(--border-color);
+  border-radius: 24px;
+  padding: 24px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s ease;
+}
+
+.post:hover, .poll:hover, .teacher-panel:hover {
+  box-shadow: var(--shadow-md);
+  border-color: rgba(255, 255, 255, 0.12);
+  transform: translateY(-2px);
+}
+
+/* ──────────────────────────────────────────────── */
+/* Posts & Comments                                  */
+/* ──────────────────────────────────────────────── */
+
 .post {
-  background: var(--card-bg);
-  padding: 10px;
-  margin-bottom: 10px;
-  border-radius: 6px;
-  border: 1px solid var(--border-color);
+  position: relative;
+}
+
+.post strong {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-color);
+  display: block;
+  margin-bottom: 8px;
 }
 
 .post.upvoted-by-me {
-  background: var(--upvoted-bg);
-  border-color: #80000088;
+  background: linear-gradient(135deg, var(--upvoted-bg) 0%, var(--card-gradient-end) 100%);
+  border-color: var(--upvote-active);
+  box-shadow: 0 4px 16px rgba(212, 163, 115, 0.15);
 }
 
+/* Hidden comment styling */
+.post.hidden-comment,
+.reply.hidden-comment {
+  opacity: 0.6;
+}
+
+.post.hidden-comment strong,
+.reply.hidden-comment strong {
+  color: var(--hidden-text-color) !important;
+}
+
+/* ──────────────────────────────────────────────── */
+/* Upvote Button                                     */
+/* ──────────────────────────────────────────────── */
+
 .upvote {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  margin-top: 12px;
+  margin-right: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-color);
+  background: var(--input-bg);
+  border: 1.5px solid var(--border-color);
+  border-radius: 999px;
   cursor: pointer;
-  color: var(--accent);
   user-select: none;
-  padding: 2px 6px;
-  border-radius: 4px;
-  transition: all 0.15s;
+  transition: all 0.2s ease;
 }
 
 .upvote:hover {
-  background: rgba(212,163,115,0.12);
+  background: var(--button-hover-bg);
+  border-color: var(--upvote-active);
+  transform: scale(1.05);
 }
 
-/* Poll */
+.upvote:active {
+  transform: scale(0.98);
+}
+
+/* ──────────────────────────────────────────────── */
+/* Reply System                                      */
+/* ──────────────────────────────────────────────── */
+
+.reply {
+  margin-left: 24px;
+  margin-top: 12px;
+  padding: 14px 18px;
+  font-size: 0.9rem;
+  background: var(--input-bg);
+  border-left: 3px solid var(--border-color);
+  border-radius: 12px;
+}
+
+.reply strong {
+  font-size: 0.9rem;
+  margin-bottom: 4px;
+}
+
+.reply-input { 
+  margin-top: 12px; 
+  border-radius: 12px;
+}
+
+/* ──────────────────────────────────────────────── */
+/* Poll Section                                      */
+/* ──────────────────────────────────────────────── */
+
 .poll {
-  background: var(--poll-bg);
-  padding: 10px;
-  margin-bottom: 15px;
-  border-radius: 6px;
+  background: linear-gradient(135deg, rgba(10, 132, 255, 0.05) 0%, var(--card-gradient-end) 100%);
+}
+
+.poll strong {
+  font-size: 1.2rem;
+  font-weight: 700;
+  display: block;
+  margin-bottom: 16px;
 }
 
 .poll button {
-  margin: 5px 8px 5px 0;
-  min-width: 140px;
-  position: relative;
-  transition: all 0.2s;
+  margin: 8px 12px 8px 0;
+  min-width: 160px;
+  padding: 14px 24px;
 }
 
 .poll button.voted-by-me {
   background: var(--upvote-active) !important;
   color: white !important;
-  box-shadow: 0 2px 8px rgba(128,0,0,0.3);
+  border-color: var(--upvote-active) !important;
+  box-shadow: 0 4px 16px rgba(212, 163, 115, 0.3);
 }
 
 .poll button.voted-by-me::after {
-  content: "✓";
-  margin-left: 6px;
+  content: " ✓";
   font-weight: bold;
 }
 
-/* Upvoted post styling – dark maroon theme */
-.post.upvoted-by-me {
-  background: #4a000022;
-  border-left: 4px solid #800000;
-  border-color: #80000066;
-  transition: background 0.4s ease, border-left 0.4s ease;
-}
-
-/* Confetti burst */
-.confetti-piece {
-  position: absolute;
-  pointer-events: none;
-  z-index: 10;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--accent);
-  opacity: 0;
-  transform-origin: center;
-  animation: confetti-burst 0.6s ease-out forwards;
-}
-
-@keyframes confetti-burst {
-  0% { transform: scale(0); opacity: 0; }
-  30% { transform: scale(1.4) translate(var(--tx), var(--ty)); opacity: 1; }
-  100% { transform: scale(0.1); opacity: 0; }
-}
-
-/* === PopBoard 1.3 additions === */
-
-.reply {
-  margin-left: 18px;
-  margin-top: 6px;
-  padding: 6px 8px;
-  font-size: 0.85rem;
-  background: rgba(0,0,0,0.03);
-  border-left: 3px solid var(--border-color);
-  border-radius: 4px;
-}
-
-.reply-input { margin-top: 6px; }
-
-.upvote.pop {
-  animation: pop 0.25s ease;
-}
-
-@keyframes pop {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.25); }
-  100% { transform: scale(1); }
-}
-
-.poll textarea { margin-top: 8px; }
-
-label {
-  font-size: 0.85rem;
-  margin-left: 4px;
-  cursor: pointer;
-}
-
-.post button.delete,
-.reply button:not(.hide-toggle) {
-  margin-left: 6px;
-  background: #c75151;
-  color: white;
-}
-
-.post button.delete:hover,
-.reply button:not(.hide-toggle):hover {
-  background: #a43f3f;
-}
-
-.anonymous {
-  font-style: italic;
-  color: #555;
+.poll textarea {
+  margin-top: 12px;
+  min-height: 100px;
 }
 
 /* ──────────────────────────────────────────────── */
-/* Anonymous Toggle - Improved Spacing & Styling    */
+/* Anonymous Toggle - Theme-Aware Checkbox          */
 /* ──────────────────────────────────────────────── */
 
 .post-options {
   display: flex;
   align-items: center;
-  gap: 6px !important;
-  margin-bottom: 8px !important;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 8px 0;
 }
 
 .post-options input[type="checkbox"] {
-  width: auto !important;
-  margin: 0 !important;
+  width: 18px;
+  height: 18px;
+  margin: 0;
   cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background: var(--checkbox-bg);
+  border: 1.5px solid var(--input-border);
+  border-radius: 4px;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.post-options input[type="checkbox"]:checked {
+  background: var(--checkbox-checked);
+  border-color: var(--checkbox-checked);
+}
+
+.post-options input[type="checkbox"]:checked::after {
+  content: "✓";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
 }
 
 .post-options label {
-  margin: 0 !important;
-  font-size: 0.85rem;
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
   cursor: pointer;
   user-select: none;
 }
 
 /* ──────────────────────────────────────────────── */
-/* Teacher Upvote History (NEW – safe addition)     */
+/* Teacher Panel & History - Smaller Text           */
 /* ──────────────────────────────────────────────── */
 
 #teacherPanel {
-  margin: 16px 0;
+  margin: 20px 0;
 }
 
 .teacher-panel {
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  padding: 10px;
-  margin-bottom: 12px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, var(--card-gradient-end) 100%);
 }
 
 .teacher-panel h3 {
-  margin: 0 0 8px 0;
-  font-size: 0.95rem;
+  margin: 0 0 12px 0;
+  font-size: 1.1rem;
+  font-weight: 600;
   color: var(--text-color);
 }
 
 .history-log {
-  max-height: 220px;
+  max-height: 240px;
   overflow-y: auto;
-  font-size: 0.8rem;
-  line-height: 1.35;
-  opacity: 0.9;
+  font-size: 0.7rem !important;
+  line-height: 1.5;
+  color: var(--text-secondary);
 }
 
 .history-log div {
-  padding: 2px 0;
+  padding: 4px 0;
   border-bottom: 1px dashed var(--border-color);
 }
 
@@ -290,52 +621,374 @@ label {
 }
 
 /* ──────────────────────────────────────────────── */
-/* Per-comment upvote history                       */
+/* Comment Upvote History - Smaller Text            */
 /* ──────────────────────────────────────────────── */
 
 .comment-upvote-history {
-  margin-top: 8px;
-  padding: 8px;
-  background: rgba(0,0,0,0.02);
+  margin-top: 16px;
+  padding: 14px 18px;
+  background: var(--input-bg);
   border-left: 3px solid var(--border-color);
-  border-radius: 4px;
-  font-size: 0.75rem;
-  line-height: 1.4;
-  opacity: 0.85;
+  border-radius: 12px;
+  font-size: 0.7rem !important;
+  line-height: 1.5;
+  color: var(--text-secondary);
 }
 
 .comment-upvote-history strong {
   display: block;
-  margin-bottom: 4px;
-  font-size: 0.8rem;
+  margin-bottom: 8px;
+  font-size: 0.75rem !important;
+  color: var(--text-color);
 }
 
 .comment-upvote-history div {
-  padding: 1px 0;
+  padding: 3px 0;
 }
 
 /* ──────────────────────────────────────────────── */
-/* Hide/Show comment buttons for posts and replies  */
+/* Poll Logs - Smaller Text                         */
 /* ──────────────────────────────────────────────── */
 
-button.hide-toggle,
-.reply button.hide-toggle {
-  background: var(--button-bg) !important;
-  color: var(--button-text) !important;
-  border: none;
-  border-radius: 4px;
-  padding: 4px 8px !important;        /* smaller padding */
+.poll-log {
+  margin-top: 16px;
+  padding: 14px 18px;
+  background: var(--input-bg);
+  border-left: 3px solid var(--border-color);
+  border-radius: 12px;
+  font-size: 0.7rem !important;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.poll-log strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.75rem !important;
+  color: var(--text-color);
+}
+
+.poll-log div {
+  padding: 3px 0;
+}
+
+/* ──────────────────────────────────────────────── */
+/* Sorting Section                                   */
+/* ──────────────────────────────────────────────── */
+
+#sortSection {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ──────────────────────────────────────────────── */
+/* PopBoards Portal                                  */
+/* ──────────────────────────────────────────────── */
+
+.portal-container {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.portal-container h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.create-board-section {
+  background: linear-gradient(135deg, var(--card-gradient-start) 0%, var(--card-gradient-end) 100%);
+  border: 1.5px solid var(--border-color);
+  border-radius: 24px;
+  padding: 24px;
+  margin-bottom: 24px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.create-board-section input {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+#boardsList {
+  display: grid;
+  gap: 16px;
+}
+
+.board-card {
+  background: linear-gradient(135deg, var(--card-gradient-start) 0%, var(--card-gradient-end) 100%);
+  border: 1.5px solid var(--border-color);
+  border-radius: 24px;
+  padding: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.3s ease;
   cursor: pointer;
-  transition: background-color 0.2s, color 0.2s;
-  font-size: 0.78rem !important;      /* smaller font */
-  line-height: 1.2 !important;        /* consistent text height */
-  margin-left: 6px !important;
-  min-width: auto !important;         /* remove inherited min-width from other buttons */
 }
 
-/* Hover state */
-button.hide-toggle:hover,
-.reply button.hide-toggle:hover {
-  background: var(--button-hover-bg) !important;
-  color: var(--button-text) !important;
+.board-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.board-card-info {
+  flex: 1;
+}
+
+.board-card-info h3 {
+  margin: 0 0 8px 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.board-card-info p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.board-card-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.board-card button {
+  padding: 8px 16px;
+  font-size: 0.85rem;
+}
+
+/* ──────────────────────────────────────────────── */
+/* Image Upload & Preview                            */
+/* ──────────────────────────────────────────────── */
+
+.image-preview {
+  margin: 12px 0;
+  position: relative;
+}
+
+.image-preview img {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border-color);
+}
+
+.image-preview .remove-image {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: var(--delete-color);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.comment-image,
+.poll-image {
+  max-width: 100%;
+  max-height: 400px;
+  border-radius: 12px;
+  margin-top: 12px;
+  border: 1.5px solid var(--border-color);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.comment-image:hover,
+.poll-image:hover {
+  transform: scale(1.02);
+  box-shadow: var(--shadow-md);
+}
+
+/* Image lightbox */
+.image-lightbox {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  cursor: pointer;
+}
+
+.image-lightbox img {
+  max-width: 90%;
+  max-height: 90%;
+  border-radius: 8px;
+}
+
+/* ──────────────────────────────────────────────── */
+/* Master Admin Styles                               */
+/* ──────────────────────────────────────────────── */
+
+.master-admin-section {
+  margin-top: 48px;
+  padding-top: 32px;
+  border-top: 2px solid var(--border-color);
+}
+
+.master-admin-section h2 {
+  color: var(--delete-color);
+  font-size: 1.5rem;
+  margin-bottom: 16px;
+}
+
+.teacher-card {
+  background: linear-gradient(135deg, rgba(255, 69, 58, 0.05) 0%, var(--card-gradient-end) 100%);
+  border: 1.5px solid rgba(255, 69, 58, 0.2);
+  border-radius: 24px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.teacher-card h4 {
+  margin: 0 0 12px 0;
+  color: var(--delete-color);
+  font-size: 1.1rem;
+}
+
+.teacher-boards {
+  margin-left: 20px;
+  margin-top: 12px;
+}
+
+.teacher-boards .board-card {
+  background: rgba(255, 255, 255, 0.03);
+  margin-bottom: 8px;
+}
+
+/* ──────────────────────────────────────────────── */
+/* Confetti Animation                                */
+/* ──────────────────────────────────────────────── */
+
+.confetti-piece {
+  position: absolute;
+  pointer-events: none;
+  z-index: 100;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--upvote-active);
+  opacity: 0;
+  transform-origin: center;
+  animation: confetti-burst 0.6s ease-out forwards;
+}
+
+@keyframes confetti-burst {
+  0% { 
+    transform: scale(0); 
+    opacity: 0; 
+  }
+  30% { 
+    transform: scale(1.4) translate(var(--tx), var(--ty)); 
+    opacity: 1; 
+  }
+  100% { 
+    transform: scale(0.1); 
+    opacity: 0; 
+  }
+}
+
+.upvote.pop {
+  animation: pop 0.25s ease;
+}
+
+@keyframes pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+/* ──────────────────────────────────────────────── */
+/* Scrollbar Styling                                 */
+/* ──────────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* ──────────────────────────────────────────────── */
+/* Responsive Design                                 */
+/* ──────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  body {
+    padding: 12px;
+  }
+
+  #login h2, #boardNameEntry h2 {
+    font-size: 2rem;
+  }
+
+  .post, .poll, .teacher-panel, #newPost {
+    padding: 18px;
+    border-radius: 20px;
+  }
+
+  button {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+  }
+
+  .poll button {
+    min-width: 120px;
+    padding: 12px 20px;
+  }
+
+  header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+/* ──────────────────────────────────────────────── */
+/* Animations & Transitions                          */
+/* ──────────────────────────────────────────────── */
+
+.post, .poll, button, .upvote, input, textarea, select {
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
