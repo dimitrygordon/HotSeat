@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════════════════════
-   PopBoard 2.4 - Premium Dark Design System - Complete
+   PopBoard 2.5 - Premium Design System (Clean Gradients)
    ══════════════════════════════════════════════════════════════════════════ */
 
 /* ──────────────────────────────────────────────── */
@@ -36,7 +36,7 @@
 }
 
 [data-theme="dark"] {
-  /* Dark mode colors - matching reference image */
+  /* Dark mode colors */
   --bg-color: #0a0a0a;
   --bg-secondary: #111111;
   --text-color: #f5f5f7;
@@ -176,7 +176,7 @@ body {
 }
 
 /* ──────────────────────────────────────────────── */
-/* Header & Logo                                     */
+/* Header & Logo - Mobile Responsive                */
 /* ──────────────────────────────────────────────── */
 
 header {
@@ -202,6 +202,14 @@ header {
 }
 
 .header-right {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.header-top-row,
+.header-bottom-row {
   display: flex;
   gap: 12px;
   align-items: center;
@@ -245,6 +253,7 @@ input[type="text"],
 input[type="password"],
 #usernameInput,
 #boardNameInput,
+#studentPasswordInput,
 #newBoardNameInput,
 #teacherNameInput,
 #teacherPasswordInput {
@@ -267,6 +276,7 @@ input[type="text"]:focus,
 input[type="password"]:focus,
 #usernameInput:focus,
 #boardNameInput:focus,
+#studentPasswordInput:focus,
 #newBoardNameInput:focus,
 #teacherNameInput:focus,
 #teacherPasswordInput:focus {
@@ -313,7 +323,7 @@ button {
   background: var(--button-bg);
   color: var(--button-text);
   border: 1.5px solid var(--button-border);
-  border-radius: 999px; /* Pill shape */
+  border-radius: 999px;
   transition: all 0.2s ease;
   font-family: inherit;
   white-space: nowrap;
@@ -328,8 +338,6 @@ button:hover {
 button:active {
   transform: translateY(0);
 }
-
-/* All buttons now use standard styling - no accent colors */
 
 /* ──────────────────────────────────────────────── */
 /* Teacher Control Buttons - Uniform Small Size     */
@@ -347,7 +355,6 @@ button.hide-toggle,
   line-height: 1.2 !important;
 }
 
-/* Hide/Show Toggle Buttons */
 button.hide-toggle,
 .reply button.hide-toggle {
   background: var(--button-bg) !important;
@@ -361,7 +368,6 @@ button.hide-toggle:hover,
   border-color: var(--text-color) !important;
 }
 
-/* Delete Buttons - Red */
 .post button.delete,
 .reply button.delete-btn,
 button.delete-poll {
@@ -378,10 +384,10 @@ button.delete-poll:hover {
 }
 
 /* ──────────────────────────────────────────────── */
-/* Card System - Gradient Backgrounds               */
+/* Card System - Clean Gradient Backgrounds         */
 /* ──────────────────────────────────────────────── */
 
-.post, .poll, .teacher-panel, #newPost {
+.post, .poll, .teacher-panel, #newPost, .metric-card {
   background: linear-gradient(135deg, var(--card-gradient-start) 0%, var(--card-gradient-end) 100%);
   border: 1.5px solid var(--border-color);
   border-radius: 24px;
@@ -419,7 +425,6 @@ button.delete-poll:hover {
   box-shadow: 0 4px 16px rgba(212, 163, 115, 0.15);
 }
 
-/* Hidden comment styling */
 .post.hidden-comment,
 .reply.hidden-comment {
   opacity: 0.6;
@@ -522,6 +527,23 @@ button.delete-poll:hover {
 .poll textarea {
   margin-top: 12px;
   min-height: 100px;
+}
+
+/* Poll stats styling */
+.poll-stat {
+  margin-top: 12px;
+  margin-bottom: 8px;
+  padding: 10px 14px;
+  background: var(--input-bg);
+  border-radius: 12px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.poll-stat strong {
+  font-size: 0.85rem;
+  display: inline;
+  margin-bottom: 0;
 }
 
 /* ──────────────────────────────────────────────── */
@@ -704,7 +726,8 @@ button.delete-poll:hover {
   margin-bottom: 0;
 }
 
-#boardsList {
+#boardsList,
+#studentsList {
   display: grid;
   gap: 16px;
 }
@@ -743,14 +766,58 @@ button.delete-poll:hover {
   color: var(--text-secondary);
 }
 
+.board-card-info .student-stats {
+  font-size: 0.78rem;
+  line-height: 1.5;
+  margin-top: 8px;
+}
+
 .board-card-actions {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .board-card button {
   padding: 8px 16px;
   font-size: 0.85rem;
+}
+
+/* ──────────────────────────────────────────────── */
+/* Student Dashboard                                 */
+/* ──────────────────────────────────────────────── */
+
+.dashboard-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.dashboard-header h2 {
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin-top: 24px;
+}
+
+.metric-card {
+  padding: 20px;
+}
+
+.metric-card h3 {
+  margin: 0 0 16px 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.metric-card canvas {
+  width: 100% !important;
+  height: auto !important;
 }
 
 /* ──────────────────────────────────────────────── */
@@ -804,7 +871,6 @@ button.delete-poll:hover {
   box-shadow: var(--shadow-md);
 }
 
-/* Image lightbox */
 .image-lightbox {
   position: fixed;
   top: 0;
@@ -963,7 +1029,28 @@ button.delete-poll:hover {
 
   .header-right {
     width: 100%;
+    align-items: stretch;
+  }
+
+  .header-top-row,
+  .header-bottom-row {
+    width: 100%;
     justify-content: space-between;
+  }
+
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .board-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .board-card-actions {
+    width: 100%;
+    justify-content: flex-start;
   }
 }
 
