@@ -38,6 +38,7 @@ let pollImageFile = null;
 
 // ---------------- DOM elements ----------------
 const loginDiv = document.getElementById("login");
+const teacherLoginDiv = document.getElementById("teacherLogin");
 const boardNameEntryDiv = document.getElementById("boardNameEntry");
 const boardsPortalDiv = document.getElementById("boardsPortal");
 const appDiv = document.getElementById("app");
@@ -46,6 +47,11 @@ const usernameInput = document.getElementById("usernameInput");
 const joinBtn = document.getElementById("joinBtn");
 const teacherLoginBtn = document.getElementById("teacherLoginBtn");
 
+const teacherNameInput = document.getElementById("teacherNameInput");
+const teacherPasswordInput = document.getElementById("teacherPasswordInput");
+const teacherSignInBtn = document.getElementById("teacherSignInBtn");
+const backToMainLoginBtn = document.getElementById("backToMainLoginBtn");
+
 const boardNameInput = document.getElementById("boardNameInput");
 const enterBoardBtn = document.getElementById("enterBoardBtn");
 const backToLoginBtn = document.getElementById("backToLoginBtn");
@@ -53,7 +59,8 @@ const backToLoginBtn = document.getElementById("backToLoginBtn");
 const newBoardNameInput = document.getElementById("newBoardNameInput");
 const createBoardBtn = document.getElementById("createBoardBtn");
 const boardsList = document.getElementById("boardsList");
-const logoutBtn = document.getElementById("logoutBtn");
+const logoutBtnPortal = document.getElementById("logoutBtnPortal");
+const logoutBtnApp = document.getElementById("logoutBtnApp");
 
 const backToPortalBtn = document.getElementById("backToPortalBtn");
 const postInput = document.getElementById("postInput");
@@ -124,48 +131,89 @@ joinBtn.onclick = () => {
   boardNameEntryDiv.classList.remove("hidden");
 };
 
-// Teacher button - checks for master admin or creates teacher account
-teacherLoginBtn.onclick = async () => {
-  const input = usernameInput.value.trim();
-  if (!input) {
-    alert("Please enter your teacher name or code");
+// Teacher button - goes to teacher login
+teacherLoginBtn.onclick = () => {
+  loginDiv.classList.add("hidden");
+  teacherLoginDiv.classList.remove("hidden");
+};
+
+// Back to main login
+backToMainLoginBtn.onclick = () => {
+  teacherLoginDiv.classList.add("hidden");
+  loginDiv.classList.remove("hidden");
+  teacherNameInput.value = "";
+  teacherPasswordInput.value = "";
+};
+
+// Teacher Sign In
+teacherSignInBtn.onclick = async () => {
+  const name = teacherNameInput.value.trim();
+  const password = teacherPasswordInput.value.trim();
+  
+  if (!name || !password) {
+    alert("Please enter both teacher name and password");
     return;
   }
 
   // Master admin login
-  if (input === "301718") {
+  if (name.toLowerCase() === "dimitry" && password === "301718Dag") {
     isMasterAdmin = true;
     isTeacher = true;
-    teacherAccount = "MASTER_ADMIN";
+    teacherAccount = "Dimitry";
     username = "Dimitry";
-    loginDiv.classList.add("hidden");
+    
+    // Create/update master admin teacher account
+    const teacherRef = doc(db, "teachers", "Dimitry");
+    await setDoc(teacherRef, {
+      name: "Dimitry",
+      password: "301718Dag",
+      createdAt: serverTimestamp()
+    }, { merge: true });
+    
+    teacherLoginDiv.classList.add("hidden");
     boardsPortalDiv.classList.remove("hidden");
     loadBoardsPortal();
     return;
   }
 
-  // Regular teacher login/creation
-  teacherAccount = input;
-  username = input;
-  isTeacher = true;
-
-  // Create teacher account if doesn't exist
-  const teacherRef = doc(db, "teachers", teacherAccount);
+  // Regular teacher login - check credentials
+  const teacherRef = doc(db, "teachers", name);
   const teacherDoc = await getDoc(teacherRef);
   
-  if (!teacherDoc.exists()) {
+  if (teacherDoc.exists()) {
+    // Teacher exists - verify password
+    const storedPassword = teacherDoc.data().password;
+    if (storedPassword === password) {
+      // Correct password
+      teacherAccount = name;
+      username = name;
+      isTeacher = true;
+      
+      teacherLoginDiv.classList.add("hidden");
+      boardsPortalDiv.classList.remove("hidden");
+      loadBoardsPortal();
+    } else {
+      alert("Incorrect password");
+    }
+  } else {
+    // New teacher - create account
+    teacherAccount = name;
+    username = name;
+    isTeacher = true;
+    
     await setDoc(teacherRef, {
-      name: teacherAccount,
+      name: name,
+      password: password,
       createdAt: serverTimestamp()
     });
+    
+    teacherLoginDiv.classList.add("hidden");
+    boardsPortalDiv.classList.remove("hidden");
+    loadBoardsPortal();
   }
-
-  loginDiv.classList.add("hidden");
-  boardsPortalDiv.classList.remove("hidden");
-  loadBoardsPortal();
 };
 
-// Back to login
+// Back to login from board name entry
 backToLoginBtn.onclick = () => {
   boardNameEntryDiv.classList.add("hidden");
   loginDiv.classList.remove("hidden");
@@ -198,8 +246,17 @@ enterBoardBtn.onclick = async () => {
   loadPoll();
 };
 
-// Logout
-logoutBtn.onclick = () => {
+// Logout from portal
+logoutBtnPortal.onclick = () => {
+  resetAndLogout();
+};
+
+// Logout from app
+logoutBtnApp.onclick = () => {
+  resetAndLogout();
+};
+
+function resetAndLogout() {
   // Reset state
   username = "";
   isTeacher = false;
@@ -212,10 +269,15 @@ logoutBtn.onclick = () => {
   // Show login
   boardsPortalDiv.classList.add("hidden");
   appDiv.classList.add("hidden");
+  teacherLoginDiv.classList.add("hidden");
+  boardNameEntryDiv.classList.add("hidden");
   loginDiv.classList.remove("hidden");
+  
   usernameInput.value = "";
   boardNameInput.value = "";
-};
+  teacherNameInput.value = "";
+  teacherPasswordInput.value = "";
+}
 
 // Back to boards portal
 backToPortalBtn.onclick = () => {
@@ -327,16 +389,14 @@ function createBoardCard(board, isMasterView) {
   const actions = document.createElement("div");
   actions.className = "board-card-actions";
 
-  // Enter button
-  if (!isMasterView) {
-    const enterBtn = document.createElement("button");
-    enterBtn.textContent = "Enter";
-    enterBtn.onclick = (e) => {
-      e.stopPropagation();
-      enterBoard(board.id);
-    };
-    actions.appendChild(enterBtn);
-  }
+  // Enter button (for all teachers including master admin)
+  const enterBtn = document.createElement("button");
+  enterBtn.textContent = "Enter";
+  enterBtn.onclick = (e) => {
+    e.stopPropagation();
+    enterBoard(board.id);
+  };
+  actions.appendChild(enterBtn);
 
   // Delete button
   const deleteBtn = document.createElement("button");
@@ -353,10 +413,8 @@ function createBoardCard(board, isMasterView) {
   card.appendChild(info);
   card.appendChild(actions);
 
-  // Click card to enter (except for master admin)
-  if (!isMasterView) {
-    card.onclick = () => enterBoard(board.id);
-  }
+  // Click card to enter
+  card.onclick = () => enterBoard(board.id);
 
   return card;
 }
@@ -393,7 +451,6 @@ function enterBoard(boardId) {
     teacherBtn.classList.remove("hidden");
     backToPortalBtn.classList.remove("hidden");
   } else {
-    // CRITICAL FIX: Hide teacher button for students
     teacherBtn.classList.add("hidden");
   }
   
@@ -583,9 +640,8 @@ function loadReplies(postId, container, parentVisible = true) {
       if (!r.visible) div.classList.add("hidden-comment");
 
       const displayName = r.anonymous && !isTeacher ? "🥷🏼Anonymous" : r.author;
-      div.innerHTML = `<strong>${displayName}</strong> ${r.text}`; // Removed colon
+      div.innerHTML = `<strong>${displayName}</strong> ${r.text}`;
 
-      // Image if exists
       if (r.imageUrl) {
         const img = document.createElement("img");
         img.src = r.imageUrl;
@@ -656,7 +712,6 @@ function loadPosts() {
         <button class="reply-btn teacher-control">Reply</button>
       `;
 
-      // Image if exists
       if (post.imageUrl) {
         const img = document.createElement("img");
         img.src = post.imageUrl;
@@ -759,7 +814,6 @@ function loadPosts() {
         label.htmlFor = `replyAnonymous-${postId}`;
         label.textContent = "🥷🏼 Anonymous";
 
-        // Reply image upload
         const replyImageInput = document.createElement("input");
         replyImageInput.type = "file";
         replyImageInput.accept = "image/*";
@@ -945,7 +999,6 @@ function loadPoll() {
       div.className = "poll";
       div.innerHTML = `<strong>${poll.question}</strong><br/>`;
 
-      // Poll image if exists
       if (poll.imageUrl) {
         const img = document.createElement("img");
         img.src = poll.imageUrl;
