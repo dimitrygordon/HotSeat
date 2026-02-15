@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════════════════════
-   PopBoard 2.3 - Premium Dark Design System with Final Polish
+   PopBoard 2.4 - Premium Dark Design System - Complete
    ══════════════════════════════════════════════════════════════════════════ */
 
 /* ──────────────────────────────────────────────── */
@@ -87,7 +87,7 @@ body {
   display: none; 
 }
 
-#login, #app, #boardNameEntry { 
+#login, #app, #boardNameEntry, #teacherLogin { 
   max-width: 720px; 
   margin: 0 auto; 
 }
@@ -96,12 +96,12 @@ body {
 /* Login Section                                     */
 /* ──────────────────────────────────────────────── */
 
-#login {
+#login, #teacherLogin {
   margin-top: 80px;
   text-align: center;
 }
 
-#login h2 {
+#login h2, #teacherLogin h2 {
   font-size: 2.5rem;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -142,7 +142,8 @@ body {
 }
 
 #login-logo-img,
-#boardname-logo-img {
+#boardname-logo-img,
+#teacher-logo-img {
   height: 80px;
   width: auto;
   max-width: 280px;
@@ -152,7 +153,8 @@ body {
 }
 
 [data-theme="dark"] #login-logo-img,
-[data-theme="dark"] #boardname-logo-img {
+[data-theme="dark"] #boardname-logo-img,
+[data-theme="dark"] #teacher-logo-img {
   filter: brightness(1.1) drop-shadow(0 4px 16px rgba(255, 255, 255, 0.1));
 }
 
@@ -240,9 +242,12 @@ header {
 
 textarea, 
 input[type="text"],
+input[type="password"],
 #usernameInput,
 #boardNameInput,
-#newBoardNameInput {
+#newBoardNameInput,
+#teacherNameInput,
+#teacherPasswordInput {
   width: 100%;
   padding: 16px 20px;
   margin-bottom: 12px;
@@ -259,9 +264,12 @@ input[type="text"],
 
 textarea:focus, 
 input[type="text"]:focus,
+input[type="password"]:focus,
 #usernameInput:focus,
 #boardNameInput:focus,
-#newBoardNameInput:focus {
+#newBoardNameInput:focus,
+#teacherNameInput:focus,
+#teacherPasswordInput:focus {
   outline: none;
   border-color: var(--accent);
   background: var(--input-bg);
@@ -293,7 +301,7 @@ select:focus {
 }
 
 /* ──────────────────────────────────────────────── */
-/* Buttons - Pill-Shaped with Borders               */
+/* Buttons - Pill-Shaped with Borders (NO BLUE)     */
 /* ──────────────────────────────────────────────── */
 
 button {
@@ -321,25 +329,7 @@ button:active {
   transform: translateY(0);
 }
 
-/* Primary action buttons */
-#postBtn,
-#joinBtn,
-#enterBoardBtn,
-#createBoardBtn {
-  background: var(--accent);
-  color: white;
-  border-color: var(--accent);
-}
-
-#postBtn:hover,
-#joinBtn:hover,
-#enterBoardBtn:hover,
-#createBoardBtn:hover {
-  background: var(--accent-hover);
-  border-color: var(--accent-hover);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
+/* All buttons now use standard styling - no accent colors */
 
 /* ──────────────────────────────────────────────── */
 /* Teacher Control Buttons - Uniform Small Size     */
@@ -947,7 +937,7 @@ button.delete-poll:hover {
     padding: 12px;
   }
 
-  #login h2, #boardNameEntry h2 {
+  #login h2, #boardNameEntry h2, #teacherLogin h2 {
     font-size: 2rem;
   }
 
