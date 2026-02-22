@@ -551,3 +551,86 @@ button.hide-toggle:hover, .reply button.hide-toggle:hover {
 #logo-img, #login-logo-img, #boardname-logo-img, #teacher-logo-img {
   animation: emoji-wiggle 2.4s ease-in-out infinite;
 }
+
+.leaderboard-identity-group {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 12px auto;
+  gap: 12px;
+}
+
+#emojiCircle {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--card-bg);
+  border: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: 1.4rem;
+}
+
+#nicknameInputContainer {
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  height: 56px;
+  min-width: 200px;
+  background: var(--card-bg);
+  border: 2px solid var(--border);
+  border-radius: 999px;
+}
+
+#nicknameInputContainer {
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  height: 56px;
+  min-width: 200px;
+  background: var(--card-bg);
+  border: 2px solid var(--border);
+  border-radius: 999px;
+  box-sizing: border-box;
+}
+
+#nicknameInputContainer input {
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 1rem;
+  color: var(--text);
+  width: 100%;
+  padding: 0;
+  text-align: center;
+  letter-spacing: 0.02em;
+  line-height: 56px;
+  height: 56px;
+  box-sizing: border-box;
+  vertical-align: middle;
+}
+
+#emojiPickerContainer {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+}
+
+@keyframes pollSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.poll {
+  animation: pollSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
