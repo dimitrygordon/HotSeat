@@ -38,10 +38,10 @@ let unsubPosts = null;
 let unsubPolls = null;
 let unsubLeaderboard = null;
 let unsubBoardSettings = null;
+let studentNickname = "";
 
 const loginDiv = document.getElementById("login");
 const teacherLoginDiv = document.getElementById("teacherLogin");
-const boardNameEntryDiv = document.getElementById("boardNameEntry");
 const boardsPortalDiv = document.getElementById("boardsPortal");
 const studentsPortalDiv = document.getElementById("studentsPortal");
 const studentDashboardDiv = document.getElementById("studentDashboard");
@@ -53,10 +53,6 @@ const teacherNameInput = document.getElementById("teacherNameInput");
 const teacherPasswordInput = document.getElementById("teacherPasswordInput");
 const teacherSignInBtn = document.getElementById("teacherSignInBtn");
 const backToMainLoginBtn = document.getElementById("backToMainLoginBtn");
-const boardNameInput = document.getElementById("boardNameInput");
-const studentPasswordInput = document.getElementById("studentPasswordInput");
-const enterBoardBtn = document.getElementById("enterBoardBtn");
-const backToLoginBtn = document.getElementById("backToLoginBtn");
 const newBoardNameInput = document.getElementById("newBoardNameInput");
 const createBoardBtn = document.getElementById("createBoardBtn");
 const boardsList = document.getElementById("boardsList");
@@ -93,6 +89,8 @@ const themeTogglePortal = document.getElementById("themeTogglePortal");
 const themeToggleStudents = document.getElementById("themeToggleStudents");
 const themeToggleDashboard = document.getElementById("themeToggleDashboard");
 const htmlElement = document.documentElement;
+const boardNameInput = document.getElementById("boardNameInput");
+const studentPasswordInput = document.getElementById("studentPasswordInput");
 
 function setTheme(theme) {
   htmlElement.setAttribute("data-theme", theme);
@@ -133,16 +131,59 @@ function teardownBoardListeners() {
   if (unsubBoardSettings) { unsubBoardSettings(); unsubBoardSettings = null; }
 }
 
-joinBtn.onclick = function() {
+joinBtn.onclick = async function() {
   username = usernameInput.value.trim();
-  if (!username) { alert("Hey there, future kernel! Enter your name so we can get this party popping!"); return; }
+  var boardName = boardNameInput.value.trim();
+  studentPassword = studentPasswordInput.value.trim();
+  if (!username) { alert("Enter your name to join!"); return; }
+  if (!boardName) { alert("Enter the PopBoard name to join!"); return; }
   if (username.toLowerCase() === "dimitry") { alert("This name is reserved."); return; }
   isTeacher = false;
+  var q = query(collection(db, "boards"), where("name", "==", boardName));
+  var snapshot = await getDocs(q);
+  if (snapshot.empty) { alert("Oops! That PopBoard hasn't popped yet. Double-check the name and try again!"); return; }
+  var boardData = snapshot.docs[0].data();
+  currentBoardId = snapshot.docs[0].id;
+  if (username === boardData.teacherAccount) { alert("Nice try, but that's the teacher's name! Choose another to join the popcorn party!"); return; }
+  var studentsRef = collection(db, "boards", currentBoardId, "students");
+  var studentQuery = query(studentsRef, where("username", "==", username));
+  var studentSnapshot = await getDocs(studentQuery);
+  if (!studentSnapshot.empty) {
+    var existingStudent = studentSnapshot.docs[0];
+    var existingPassword = existingStudent.data().password || "";
+    if (existingPassword && existingPassword !== studentPassword) { alert("That password didn't pop! Double-check your kernel key!"); return; }
+    currentStudentId = existingStudent.id;
+    studentEmoji = existingStudent.data().emoji || "";
+    studentNickname = existingStudent.data().nickname || "";
+  } else {
+    var newStudent = await addDoc(studentsRef, {
+      username: username,
+      password: studentPassword,
+      joinedAt: serverTimestamp(),
+      historicalComments: 0,
+      historicalUpvotesGiven: 0,
+      historicalUpvotesReceived: 0,
+      historicalPollsCast: 0,
+      monthlyStats: {},
+      emoji: "",
+      nickname: ""
+    });
+    currentStudentId = newStudent.id;
+    studentEmoji = "";
+    studentNickname = "";
+  }
   loginDiv.classList.add("hidden");
-  boardNameEntryDiv.classList.remove("hidden");
+  appDiv.classList.remove("hidden");
+  teacherBtn.classList.add("hidden");
+  backToPortalBtn.classList.add("hidden");
+  studentsBtn.classList.add("hidden");
+  leaderboardToggleContainer.classList.add("hidden");
+  dailyDashboard.classList.add("hidden");
+  startBoard();
 };
 
-teacherLoginBtn.onclick = function() {
+document.getElementById("teacherLoginBtn").onclick = function(e) {
+  e.preventDefault();
   loginDiv.classList.add("hidden");
   teacherLoginDiv.classList.remove("hidden");
 };
@@ -193,57 +234,6 @@ teacherSignInBtn.onclick = async function() {
   }
 };
 
-backToLoginBtn.onclick = function() {
-  boardNameEntryDiv.classList.add("hidden");
-  loginDiv.classList.remove("hidden");
-  boardNameInput.value = "";
-  studentPasswordInput.value = "";
-};
-
-enterBoardBtn.onclick = async function() {
-  var boardName = boardNameInput.value.trim();
-  if (!boardName) { alert("Please enter a PopBoard name."); return; }
-  studentPassword = studentPasswordInput.value.trim();
-  var q = query(collection(db, "boards"), where("name", "==", boardName));
-  var snapshot = await getDocs(q);
-  if (snapshot.empty) { alert("Oops! That PopBoard hasn't popped yet. Double-check the name and try again!"); return; }
-  var boardData = snapshot.docs[0].data();
-  currentBoardId = snapshot.docs[0].id;
-  if (username === boardData.teacherAccount) { alert("Nice try, but that's the teacher's name! Choose another to join the popcorn party!"); return; }
-  var studentsRef = collection(db, "boards", currentBoardId, "students");
-  var studentQuery = query(studentsRef, where("username", "==", username));
-  var studentSnapshot = await getDocs(studentQuery);
-  if (!studentSnapshot.empty) {
-    var existingStudent = studentSnapshot.docs[0];
-    var existingPassword = existingStudent.data().password || "";
-    if (existingPassword && existingPassword !== studentPassword) { alert("That password didn't pop! Double-check your kernel key!"); return; }
-    currentStudentId = existingStudent.id;
-    studentEmoji = existingStudent.data().emoji || "";
-  } else {
-    var newStudent = await addDoc(studentsRef, {
-      username: username,
-      password: studentPassword,
-      joinedAt: serverTimestamp(),
-      historicalComments: 0,
-      historicalUpvotesGiven: 0,
-      historicalUpvotesReceived: 0,
-      historicalPollsCast: 0,
-      monthlyStats: {},
-      emoji: ""
-    });
-    currentStudentId = newStudent.id;
-    studentEmoji = "";
-  }
-  boardNameEntryDiv.classList.add("hidden");
-  appDiv.classList.remove("hidden");
-  teacherBtn.classList.add("hidden");
-  backToPortalBtn.classList.add("hidden");
-  studentsBtn.classList.add("hidden");
-  leaderboardToggleContainer.classList.add("hidden");
-  dailyDashboard.classList.add("hidden");
-  startBoard();
-};
-
 logoutBtnPortal.onclick = function() { resetAndLogout(); };
 logoutBtnApp.onclick = function() { resetAndLogout(); };
 logoutBtnStudents.onclick = function() { resetAndLogout(); };
@@ -261,12 +251,12 @@ function resetAndLogout() {
   studentEmoji = "";
   myUpvotedPostIds.clear();
   myPollVotes.clear();
-  var panels = [boardsPortalDiv, studentsPortalDiv, studentDashboardDiv, appDiv, teacherLoginDiv, boardNameEntryDiv];
+  var panels = [boardsPortalDiv, studentsPortalDiv, studentDashboardDiv, appDiv, teacherLoginDiv];
   for (var i = 0; i < panels.length; i++) { panels[i].classList.add("hidden"); }
   loginDiv.classList.remove("hidden");
   usernameInput.value = "";
-  boardNameInput.value = "";
-  studentPasswordInput.value = "";
+  if (document.getElementById("boardNameInput")) { document.getElementById("boardNameInput").value = ""; }
+  if (document.getElementById("studentPasswordInput")) { document.getElementById("studentPasswordInput").value = ""; }
   teacherNameInput.value = "";
   teacherPasswordInput.value = "";
   pollSection.innerHTML = "";
@@ -472,12 +462,15 @@ function applyLeaderboardVisibility() {
     leaderboardVisibilityBtn.textContent = leaderboardVisible ? "👁️ Leaderboard Shown" : "👁️‍🗨️ Leaderboard Hidden";
     return;
   }
+  var nicknameContainer = document.getElementById("nicknameInputContainer");
   if (leaderboardVisible) {
     leaderboardSection.style.display = "";
     emojiPickerContainer.classList.remove("hidden");
+    if (nicknameContainer) { nicknameContainer.style.display = "inline-flex"; }
   } else {
     leaderboardSection.style.display = "none";
     emojiPickerContainer.classList.add("hidden");
+    if (nicknameContainer) { nicknameContainer.style.display = "none"; }
   }
 }
 
@@ -500,14 +493,40 @@ function initLeaderboard() {
       var d = snapshot.docs[i];
       var data = d.data();
       var emoji = data.emoji || "";
-      if (!emoji) {
+      var nickname = data.nickname || "";
+      if (!emoji || !nickname) {
         var studentQuery = query(collection(db, "boards", currentBoardId, "students"), where("username", "==", d.id));
         var studentSnap = await getDocs(studentQuery);
-        if (!studentSnap.empty) { emoji = studentSnap.docs[0].data().emoji || ""; }
+        if (!studentSnap.empty) {
+          var sData = studentSnap.docs[0].data();
+          if (!emoji) { emoji = sData.emoji || ""; }
+          if (!nickname) { nickname = sData.nickname || ""; }
+        }
       }
-      scores.push({ name: d.id, score: data.score || 0, emoji: emoji });
+      scores.push({ name: d.id, displayName: nickname || d.id, score: data.score || 0, emoji: emoji });
     }
     scores.sort(function(a, b) { return b.score - a.score; });
+    if (!isTeacher) {
+      var myRank = -1;
+      for (var ri = 0; ri < scores.length; ri++) {
+        if (scores[ri].name === username) { myRank = ri + 1; break; }
+      }
+      var rankLabel = document.getElementById("myRankLabel");
+      if (!rankLabel) {
+        rankLabel = document.createElement("span");
+        rankLabel.id = "myRankLabel";
+        rankLabel.style.cssText = "font-size:0.85rem;opacity:0.6;white-space:nowrap;";
+        var group = document.querySelector(".leaderboard-identity-group");
+        if (group) { group.appendChild(rankLabel); }
+      }
+      if (myRank > 0) {
+        var medal = myRank === 1 ? "🥇" : myRank === 2 ? "🥈" : myRank === 3 ? "🥉" : "";
+        rankLabel.textContent = medal ? medal + " #" + myRank : "#" + myRank;
+      } else {
+        rankLabel.textContent = "";
+      }
+    }
+    renderLeaderboardUI(scores.slice(0, 6));
     renderLeaderboardUI(scores.slice(0, 6));
   });
 }
@@ -558,7 +577,7 @@ function renderLeaderboardUI(top6) {
     var nameDiv = document.createElement("div");
     nameDiv.className = "lb-name";
     var nameSpan = document.createElement("span");
-    nameSpan.textContent = entry.name;
+    nameSpan.textContent = entry.displayName || entry.name;
     nameDiv.appendChild(nameSpan);
     if (entry.emoji) {
       var eSpan = document.createElement("span");
@@ -665,6 +684,45 @@ async function awardLeaderboardPoints(pollId, correctIndices) {
       score: parseFloat(((prevLb.score || 0) + points).toFixed(3))
     }, { merge: true });
 
+    // ── Confetti for the student who just earned a medal ───────────────────
+    if (student.name === username && !isTeacher) {
+      if (rank === 0 || rank === 1 || rank === 2) {
+        var prevScores = [];
+        var allLbSnap = await getDocs(collection(db, "boards", currentBoardId, "leaderboard"));
+        allLbSnap.forEach(function(d) { prevScores.push({ name: d.id, score: d.data().score || 0 }); });
+        prevScores.sort(function(a, b) { return b.score - a.score; });
+        var prevRank = -1;
+        for (var pri = 0; pri < prevScores.length; pri++) {
+          if (prevScores[pri].name === student.name) { prevRank = pri; break; }
+        }
+        var isImprovement = prevRank === -1 || rank < prevRank;
+        if (isImprovement) {
+          var medals = ["🥇", "🥈", "🥉"];
+          var centerEl = document.getElementById("leaderboardSection");
+          if (centerEl) {
+            for (var ci = 0; ci < 18; ci++) {
+              var p = document.createElement("span");
+              p.textContent = medals[rank];
+              var rect = centerEl.getBoundingClientRect();
+              var startX = rect.left + rect.width / 2;
+              var startY = rect.top + rect.height / 2;
+              p.style.cssText = "position:fixed;left:" + startX + "px;top:" + startY + "px;font-size:22px;opacity:1;transition:all 1s ease-out;pointer-events:none;z-index:9999;";
+              document.body.appendChild(p);
+              var x = (Math.random() - 0.5) * 220;
+              var y = -Math.random() * 180 - 40;
+              (function(el, xv, yv) {
+                requestAnimationFrame(function() {
+                  el.style.transform = "translate(" + xv + "px," + yv + "px) rotate(" + Math.round(Math.random() * 360) + "deg)";
+                  el.style.opacity = "0";
+                });
+                setTimeout(function() { el.remove(); }, 1000);
+              })(p, x, y);
+            }
+          }
+        }
+      }
+    }
+
     // ── Save medal counts to student doc (persists across resets) ──────────
     var studentQuery = query(collection(db, "boards", currentBoardId, "students"), where("username", "==", student.name));
     var studentSnap = await getDocs(studentQuery);
@@ -681,6 +739,8 @@ async function awardLeaderboardPoints(pollId, correctIndices) {
 
 function setupEmojiPicker() {
   renderEmojiCircle();
+  renderNicknameInput();
+
   emojiCircle.onclick = function() {
     emojiInput.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:72px;height:72px;font-size:2rem;text-align:center;z-index:9999;border-radius:50%;opacity:1;pointer-events:all;border:2px solid #0071e3;outline:none;";
     emojiInput.value = "";
@@ -713,6 +773,38 @@ function renderEmojiCircle() {
     emojiDisplay.appendChild(span);
   } else {
     emojiDisplay.textContent = "Choose Emoji";
+  }
+}
+
+function renderNicknameInput() {
+  var container = document.getElementById("nicknameInputContainer");
+  if (!container) { return; }
+  container.innerHTML = "";
+  var input = document.createElement("input");
+  input.type = "text";
+  input.maxLength = 20;
+  input.placeholder = "Leaderboard name (optional)";
+  input.value = studentNickname || "";
+  input.style.cssText = "position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:calc(100% - 32px);background:transparent;border:none;outline:none;font-size:1rem;color:inherit;text-align:center;letter-spacing:0.02em;";
+  input.onblur = async function() {
+    var newVal = input.value.trim();
+    if (newVal !== studentNickname) {
+      studentNickname = newVal;
+      await saveStudentNickname();
+    }
+  };
+  input.onkeydown = function(e) { if (e.key === "Enter") { input.blur(); } };
+  container.style.position = "relative";
+  container.appendChild(input);
+}
+
+async function saveStudentNickname() {
+  if (!currentStudentId || !currentBoardId) { return; }
+  await updateDoc(doc(db, "boards", currentBoardId, "students", currentStudentId), { nickname: studentNickname });
+  var lbRef = doc(db, "boards", currentBoardId, "leaderboard", username);
+  var lbSnap = await getDoc(lbRef);
+  if (lbSnap.exists()) {
+    await updateDoc(lbRef, { nickname: studentNickname });
   }
 }
 
@@ -749,7 +841,13 @@ async function loadStudentsPortal() {
     var info = document.createElement("div");
     info.className = "board-card-info";
     var pollPct = totalPolls > 0 ? Math.round((stats.pollsVoted / totalPolls) * 100) : 0;
-    info.innerHTML = "<h3>" + student.username + "</h3><p class='student-stats'>Polls: " + stats.pollsVoted + " (" + pollPct + "%) | Comments: " + stats.comments + " | Upvotes Given: " + stats.upvotesGiven + " | Upvotes Received: " + stats.upvotesReceived + " | 🥷🏼 Anonymous: " + stats.anonymousPercentage + "%</p>";
+    var engagementData = await computeMonthlyEngagement(studentId, student);
+    var currentMonthKey = new Date().getFullYear() + "-" + String(new Date().getMonth() + 1).padStart(2, "0");
+    var currentEngagement = 0;
+    for (var ei = 0; ei < engagementData.length; ei++) {
+      if (engagementData[ei].key === currentMonthKey) { currentEngagement = Math.round(engagementData[ei].value); break; }
+    }
+    info.innerHTML = "<h3>" + student.username + "</h3><p class='student-stats'>📊 Engagement: " + currentEngagement + "% | Polls: " + stats.pollsVoted + " (" + pollPct + "%) | Comments: " + stats.comments + " | Upvotes Given: " + stats.upvotesGiven + " | Upvotes Received: " + stats.upvotesReceived + " | 🥷🏼 Anonymous: " + stats.anonymousPercentage + "%</p>";
     var actions = document.createElement("div");
     actions.className = "board-card-actions";
     var enterBtn = document.createElement("button");
@@ -932,6 +1030,8 @@ async function computeMonthlyEngagement(studentId, student) {
   var pollsSnap = await getDocs(collection(db, "boards", currentBoardId, "polls"));
   var postsSnap = await getDocs(collection(db, "boards", currentBoardId, "posts"));
   var repliesSnap = await getDocs(collection(db, "boards", currentBoardId, "replies"));
+  var now = new Date();
+  var currentMonthKey = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0");
   var results = [];
   for (var mi = 0; mi < months.length; mi++) {
     var monthKey = months[mi];
@@ -945,9 +1045,10 @@ async function computeMonthlyEngagement(studentId, student) {
     var primaryCommentCount = 0;
     pollsSnap.forEach(function(pd) {
       var poll = pd.data();
+      var hasInteraction = (poll.history && poll.history.length > 0) || (poll.voters && poll.voters.length > 0);
+      if (!hasInteraction) { return; }
       var pollTime = poll.createdAt && poll.createdAt.toDate ? poll.createdAt.toDate() : null;
-      if (!pollTime || pollTime < joinedAt) { return; }
-      var pk = pollTime.getFullYear() + "-" + String(pollTime.getMonth() + 1).padStart(2, "0");
+      var pk = pollTime ? (pollTime.getFullYear() + "-" + String(pollTime.getMonth() + 1).padStart(2, "0")) : currentMonthKey;
       if (pk !== monthKey) { return; }
       totalOpp++;
       var voted = poll.type === "mc" ? (poll.voters || []).indexOf(student.username) !== -1 : (poll.history || []).some(function(h) { return h.username === student.username; });
@@ -976,6 +1077,8 @@ async function computeMonthlyPollsCastPct(studentId, student) {
   var months = getLastTwelveMonthKeys();
   var joinedAt = student.joinedAt && student.joinedAt.toDate ? student.joinedAt.toDate() : new Date(0);
   var pollsSnap = await getDocs(collection(db, "boards", currentBoardId, "polls"));
+  var now = new Date();
+  var currentMonthKey = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0");
   var results = [];
   for (var mi = 0; mi < months.length; mi++) {
     var monthKey = months[mi];
@@ -988,9 +1091,10 @@ async function computeMonthlyPollsCastPct(studentId, student) {
     var voted = 0;
     pollsSnap.forEach(function(pd) {
       var poll = pd.data();
+      var hasInteraction = (poll.history && poll.history.length > 0) || (poll.voters && poll.voters.length > 0);
+      if (!hasInteraction) { return; }
       var pollTime = poll.createdAt && poll.createdAt.toDate ? poll.createdAt.toDate() : null;
-      if (!pollTime || pollTime < joinedAt) { return; }
-      var pk = pollTime.getFullYear() + "-" + String(pollTime.getMonth() + 1).padStart(2, "0");
+      var pk = pollTime ? (pollTime.getFullYear() + "-" + String(pollTime.getMonth() + 1).padStart(2, "0")) : currentMonthKey;
       if (pk !== monthKey) { return; }
       total++;
       var v = poll.type === "mc" ? (poll.voters || []).indexOf(student.username) !== -1 : (poll.history || []).some(function(h) { return h.username === student.username; });
@@ -1038,6 +1142,8 @@ async function computeMonthlyAnonPct(studentId, student) {
 async function computeMonthlyPollAccuracy(studentId, student) {
   var months = getLastTwelveMonthKeys();
   var pollsSnap = await getDocs(collection(db, "boards", currentBoardId, "polls"));
+  var now = new Date();
+  var currentMonthKey = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0");
   var results = [];
   for (var mi = 0; mi < months.length; mi++) {
     var monthKey = months[mi];
@@ -1048,8 +1154,7 @@ async function computeMonthlyPollAccuracy(studentId, student) {
       if (poll.type !== "mc") { return; }
       if ((poll.voters || []).indexOf(student.username) === -1) { return; }
       var pollTime = poll.createdAt && poll.createdAt.toDate ? poll.createdAt.toDate() : null;
-      if (!pollTime) { return; }
-      var pk = pollTime.getFullYear() + "-" + String(pollTime.getMonth() + 1).padStart(2, "0");
+      var pk = pollTime ? (pollTime.getFullYear() + "-" + String(pollTime.getMonth() + 1).padStart(2, "0")) : currentMonthKey;
       if (pk !== monthKey) { return; }
       participated++;
       if (!poll.correctIndices || poll.correctIndices.length === 0) { return; }
@@ -1209,7 +1314,10 @@ async function mergeStudents(keepId, mergeId) {
     historicalComments: (keepData.historicalComments || 0) + (mergeData.historicalComments || 0),
     historicalUpvotesGiven: (keepData.historicalUpvotesGiven || 0) + (mergeData.historicalUpvotesGiven || 0),
     historicalUpvotesReceived: (keepData.historicalUpvotesReceived || 0) + (mergeData.historicalUpvotesReceived || 0),
-    historicalPollsCast: (keepData.historicalPollsCast || 0) + (mergeData.historicalPollsCast || 0)
+    historicalPollsCast: (keepData.historicalPollsCast || 0) + (mergeData.historicalPollsCast || 0),
+    goldMedals: (keepData.goldMedals || 0) + (mergeData.goldMedals || 0),
+    silverMedals: (keepData.silverMedals || 0) + (mergeData.silverMedals || 0),
+    bronzeMedals: (keepData.bronzeMedals || 0) + (mergeData.bronzeMedals || 0)
   };
   var mergedM = Object.assign({}, keepData.monthlyStats || {});
   var mergeStats = mergeData.monthlyStats || {};
@@ -1227,6 +1335,20 @@ async function mergeStudents(keepId, mergeId) {
   var updateData = { monthlyStats: mergedM };
   for (var key in mergedH) { updateData[key] = mergedH[key]; }
   await updateDoc(keepRef, updateData);
+
+  // ── Merge leaderboard docs ─────────────────────────────────────────────
+  var keepLbRef = doc(db, "boards", currentBoardId, "leaderboard", keepData.username);
+  var mergeLbRef = doc(db, "boards", currentBoardId, "leaderboard", mergeData.username);
+  var keepLbSnap = await getDoc(keepLbRef);
+  var mergeLbSnap = await getDoc(mergeLbRef);
+  if (mergeLbSnap.exists()) {
+    var mergedScore = (keepLbSnap.exists() ? keepLbSnap.data().score || 0 : 0) + (mergeLbSnap.data().score || 0);
+    var mergedEmoji = (keepLbSnap.exists() && keepLbSnap.data().emoji) ? keepLbSnap.data().emoji : (mergeLbSnap.data().emoji || "");
+    var mergedNickname = (keepLbSnap.exists() && keepLbSnap.data().nickname) ? keepLbSnap.data().nickname : (mergeLbSnap.data().nickname || "");
+    await setDoc(keepLbRef, { score: parseFloat(mergedScore.toFixed(3)), emoji: mergedEmoji, nickname: mergedNickname }, { merge: true });
+    await deleteDoc(mergeLbRef);
+  }
+
   await deleteDoc(mergeRef);
   alert("Students merged successfully.");
   viewStudentDashboard(keepId);
@@ -1727,16 +1849,80 @@ async function loadPolls() {
     collection(db, "boards", currentBoardId, "polls"),
     function(snapshot) {
       pollSection.innerHTML = "";
+      var archivedSection = document.getElementById("archivedPolls");
+      if (archivedSection) { archivedSection.innerHTML = ""; }
 
-      snapshot.forEach(function(docSnap) {
+      var pollDocs = [];
+      snapshot.forEach(function(docSnap) { pollDocs.push(docSnap); });
+
+      pollDocs.sort(function(a, b) {
+        function getPollPriority(docSnap) {
+          var p = docSnap.data();
+          var hasInteraction = (p.history && p.history.length > 0) || (p.voters && p.voters.length > 0);
+          if (p.visible) { return 0; }
+          if (!hasInteraction) { return 1; }
+          return 2;
+        }
+        return getPollPriority(a) - getPollPriority(b);
+      });
+
+      var activePollDocs = pollDocs.filter(function(d) {
+        var p = d.data();
+        var hasInteraction = (p.history && p.history.length > 0) || (p.voters && p.voters.length > 0);
+        return p.visible || !hasInteraction;
+      });
+      var archivedPollDocs = pollDocs.filter(function(d) {
+        var p = d.data();
+        var hasInteraction = (p.history && p.history.length > 0) || (p.voters && p.voters.length > 0);
+        return !p.visible && hasInteraction;
+      });
+
+      activePollDocs.forEach(function(docSnap) {
         var poll = docSnap.data();
         var pollId = docSnap.id;
         var pollVisible = poll.visible !== undefined ? poll.visible : false;
 
         if (!isTeacher && !pollVisible) { return; }
 
+        // Restore vote state from history on reload
+        if (!isTeacher && currentStudentId) {
+          if (poll.requireAllCorrect) {
+            var multiSet = new Set();
+            (poll.history || []).forEach(function(h) {
+              if (h.username !== username) { return; }
+              var resp = h.response || "";
+              if (resp.indexOf("Voted: ") === 0) {
+                var optText = resp.slice(7);
+                var idx = (poll.options || []).indexOf(optText);
+                if (idx !== -1) { multiSet.add(idx); }
+              } else if (resp.indexOf("Removed vote: ") === 0) {
+                var optText = resp.slice(14);
+                var idx = (poll.options || []).indexOf(optText);
+                if (idx !== -1) { multiSet.delete(idx); }
+              }
+            });
+            if (multiSet.size > 0) { myPollVotes.set(pollId + "_multi", multiSet); }
+          } else {
+            var lastVote = null;
+            (poll.history || []).forEach(function(h) {
+              if (h.username !== username) { return; }
+              var resp = h.response || "";
+              if (resp.indexOf("Voted: ") === 0) {
+                var optText = resp.slice(7);
+                var idx = (poll.options || []).indexOf(optText);
+                if (idx !== -1) { lastVote = idx; }
+              } else if (resp.indexOf("Removed vote: ") === 0) {
+                lastVote = null;
+              }
+            });
+            if (lastVote !== null) { myPollVotes.set(pollId, lastVote); }
+          }
+        }
+
         var div = document.createElement("div");
         div.className = "poll";
+        var hasInteraction = (poll.history && poll.history.length > 0) || (poll.voters && poll.voters.length > 0);
+        if (isTeacher && !pollVisible && !hasInteraction) { div.style.opacity = "0.4"; div.style.filter = "grayscale(30%)"; }
         var questionEl = document.createElement("strong");
         questionEl.textContent = poll.question;
         div.appendChild(questionEl);
@@ -1839,6 +2025,59 @@ async function loadPolls() {
 
         pollSection.appendChild(div);
       });
+
+      if (isTeacher && archivedSection && archivedPollDocs.length > 0) {
+        var header = document.createElement("div");
+        header.style.cssText = "text-align:center;color:var(--text-secondary,#888);font-size:0.85rem;margin:24px 0 8px;letter-spacing:0.05em;";
+        header.textContent = "── Archived Polls ──";
+        archivedSection.appendChild(header);
+        archivedPollDocs.forEach(function(docSnap) {
+          var poll = docSnap.data();
+          var pollId = docSnap.id;
+          var div = document.createElement("div");
+          div.className = "poll";
+          div.style.opacity = "0.6";
+          var questionEl = document.createElement("strong");
+          questionEl.textContent = poll.question;
+          div.appendChild(questionEl);
+          if (poll.imageUrl) {
+            var img = document.createElement("img");
+            img.src = poll.imageUrl;
+            img.className = "poll-image";
+            (function(url) { img.onclick = function() { showImageLightbox(url); }; })(poll.imageUrl);
+            div.appendChild(img);
+          }
+          if (poll.type === "free") { renderFreePoll(div, poll, pollId, totalStudents); }
+          else if (poll.type === "mc") { renderMCPoll(div, poll, pollId, totalStudents); }
+          var controlsDiv = document.createElement("div");
+          controlsDiv.style.cssText = "margin-top:16px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;";
+          var toggleBtn = document.createElement("button");
+          toggleBtn.type = "button";
+          toggleBtn.textContent = "👁️‍🗨️ Hidden";
+          toggleBtn.className = "hide-toggle teacher-control";
+          (function(pid) {
+            toggleBtn.onclick = async function(e) {
+              e.stopPropagation();
+              await updateDoc(doc(db, "boards", currentBoardId, "polls", pid), { visible: true });
+            };
+          })(pollId);
+          controlsDiv.appendChild(toggleBtn);
+          var delBtn = document.createElement("button");
+          delBtn.type = "button";
+          delBtn.textContent = "🗑️ Delete";
+          delBtn.className = "delete-poll teacher-control";
+          (function(pid) {
+            delBtn.onclick = async function(e) {
+              e.stopPropagation();
+              if (!confirm("Delete this poll?")) { return; }
+              await deleteDoc(doc(db, "boards", currentBoardId, "polls", pid));
+            };
+          })(pollId);
+          controlsDiv.appendChild(delBtn);
+          div.appendChild(controlsDiv);
+          archivedSection.appendChild(div);
+        });
+      }
     },
     function(error) { console.error("Poll listener error:", error); }
   );
@@ -1975,9 +2214,11 @@ function renderMCPoll(div, poll, pollId, totalStudents) {
         var fill = document.createElement("div");
         fill.className = "mc-bar-fill";
         if (correctShown) {
-          fill.style.background = correctIndices.indexOf(oi) !== -1 ? "#34c759" : "#ff453a";
+        fill.style.background = correctIndices.indexOf(oi) !== -1 ? "#34c759" : "#ff453a";
+        if (myPollVotes.get(pollId) === oi) { row.style.cssText += "outline:2px solid #0071e3;border-radius:999px;"; }
         } else {
-          fill.style.background = "#0071e3";
+        fill.style.background = "#0071e3";
+        if (myPollVotes.get(pollId) === oi) { row.style.cssText += "outline:2px solid #0071e3;border-radius:999px;box-shadow:0 0 0 3px rgba(0,113,227,0.25);"; }
         }
         fill.style.width = (voteCount === 0 ? 0 : Math.max(4, (voteCount / maxVotes) * 100)) + "%";
         var countSpan = document.createElement("span");
