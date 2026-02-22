@@ -17,11 +17,15 @@
     <img src="/popboard-logo.png" alt="PopBoard Logo" id="login-logo-img" />
   </div>
   <h2>Join PopBoard</h2>
-  <input id="usernameInput" placeholder="Enter your name" />
+  <input id="usernameInput" placeholder="Your name" />
+  <input id="boardNameInput" placeholder="PopBoard name" />
+  <input id="studentPasswordInput" type="password" placeholder="Password (protects your account)" />
   <div class="login-buttons">
     <button id="joinBtn">Join</button>
-    <button id="teacherLoginBtn">Teacher</button>
   </div>
+  <p style="text-align:center;margin-top:16px;font-size:0.85rem;opacity:0.6;">
+    <a id="teacherLoginBtn" href="#" style="color:inherit;text-decoration:underline;cursor:pointer;">Teacher? Sign in here</a>
+  </p>
 </div>
 
 <!-- Teacher Login -->
@@ -35,20 +39,6 @@
   <div class="login-buttons">
     <button id="teacherSignInBtn">Sign In</button>
     <button id="backToMainLoginBtn" class="secondary-btn">Back</button>
-  </div>
-</div>
-
-<!-- Board Name Entry (Student) -->
-<div id="boardNameEntry" class="hidden">
-  <div class="login-logo">
-    <img src="/popboard-logo.png" alt="PopBoard Logo" id="boardname-logo-img" />
-  </div>
-  <h2>Enter PopBoard Name</h2>
-  <input id="boardNameInput" placeholder="PopBoard name" />
-  <input id="studentPasswordInput" type="password" placeholder="Your Password (Recommended)" />
-  <div class="login-buttons">
-    <button id="enterBoardBtn">Enter</button>
-    <button id="backToLoginBtn" class="secondary-btn">Back</button>
   </div>
 </div>
 
@@ -127,6 +117,9 @@
     </div>
   </header>
 
+  <!-- Teacher Poll Creation (top, above everything) -->
+  <section id="pollCreation" class="hidden"></section>
+
   <!-- Teacher: Leaderboard visibility toggle -->
   <div id="leaderboardToggleContainer" class="hidden" style="text-align:center; margin-bottom:12px;">
     <button id="leaderboardVisibilityBtn" class="teacher-control">👁️ Leaderboard Shown</button>
@@ -135,17 +128,16 @@
   <!-- Leaderboard -->
   <section id="leaderboardSection"></section>
 
-  <!-- Student emoji picker (students only) -->
+  <!-- Student emoji picker + nickname (students only) -->
   <div id="emojiPickerContainer" class="hidden">
-    <span class="emoji-label">Your Emoji:</span>
-    <div id="emojiCircle" title="Click to choose your emoji">
-      <span id="emojiDisplay">Choose Emoji</span>
+    <div class="leaderboard-identity-group">
+      <div id="emojiCircle" title="Click to choose your emoji">
+        <span id="emojiDisplay">Choose Emoji</span>
+      </div>
+      <div id="nicknameInputContainer"></div>
     </div>
     <input id="emojiInput" maxlength="2" placeholder="" />
   </div>
-
-  <!-- Teacher Poll Creation -->
-  <section id="pollCreation" class="hidden"></section>
 
   <!-- Poll Section -->
   <section id="pollSection"></section>
@@ -190,6 +182,10 @@
 
   <!-- Posts -->
   <section id="posts"></section>
+
+  <!-- Archived Polls (hidden + interacted, teacher only) -->
+  <section id="archivedPolls"></section>
+
 </div>
 
 <script type="module" src="app.js"></script>
