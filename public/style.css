@@ -634,3 +634,36 @@ button.hide-toggle:hover, .reply button.hide-toggle:hover {
 .poll {
   animation: pollSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
+
+@keyframes goldSheen {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes silverSheen {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes bronzeSheen {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.lb-bar-gold {
+  background: linear-gradient(90deg, #f9a825, #ffd700, #fff176, #ffd700, #f9a825) !important;
+  background-size: 300% 100% !important;
+  animation: goldSheen 16.8s ease-in-out infinite !important;
+}
+
+.lb-bar-silver {
+  background: linear-gradient(90deg, #9e9e9e, #c0c0c0, #e8e8e8, #c0c0c0, #9e9e9e) !important;
+  background-size: 300% 100% !important;
+  animation: silverSheen 19.6s ease-in-out infinite !important;
+}
+
+.lb-bar-bronze {
+  background: linear-gradient(90deg, #b5651d, #cd7f32, #e8a96a, #cd7f32, #b5651d) !important;
+  background-size: 300% 100% !important;
+  animation: bronzeSheen 22.4s ease-in-out infinite !important;
+}
